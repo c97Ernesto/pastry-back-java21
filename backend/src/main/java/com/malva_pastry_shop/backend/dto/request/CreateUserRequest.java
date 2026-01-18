@@ -1,0 +1,29 @@
+package com.malva_pastry_shop.backend.dto.request;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class CreateUserRequest {
+
+    @NotBlank(message = "El nombre es requerido")
+    @Size(max = 100, message = "El nombre no puede exceder 100 caracteres")
+    private String name;
+
+    @Size(max = 100, message = "El apellido no puede exceder 100 caracteres")
+    private String lastName;
+
+    @NotBlank(message = "El email es requerido")
+    @Email(message = "El email debe tener un formato valido")
+    private String email;
+
+    @NotBlank(message = "La contrasena es requerida")
+    @Size(min = 6, max = 100, message = "La contrasena debe tener entre 6 y 100 caracteres")
+    private String password;
+}

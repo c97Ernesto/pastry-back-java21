@@ -17,7 +17,7 @@ Sistema backend para la gestión de una pastelería artesanal. Este proyecto es 
 |---------|------------------|----------------|
 | **Java** | 17 | **21** (LTS) |
 | **Spring Boot** | 3.x | **4.0.1** |
-| **Spring Security** | 6.x | **7.x** (incluido en SB 4.0) |
+| **Spring Security** | 6.x | **7.x** |
 | **Hibernate** | 6.x | **7.2** |
 | **Jakarta EE** | 9 | **11** |
 
@@ -178,15 +178,3 @@ src/main/resources/
 # Ejecutar con cobertura
 .\mvnw.cmd test jacoco:report
 ```
-
----
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## Autor
-
-Desarrollado como parte del proyecto Malva Pastry Shop.
