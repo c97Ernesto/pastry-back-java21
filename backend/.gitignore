@@ -32,5 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 
-### Claude ###
+### LLM ###
 /.claude
+CONTEXT.md
+

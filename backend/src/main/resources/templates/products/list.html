@@ -99,7 +99,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Precio</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Preparación</th>
+                                Actualización</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones</th>
                         </tr>
@@ -142,22 +142,18 @@
                                 <span th:if="${product.basePrice == null}" class="text-sm text-gray-400 italic">Sin
                                     precio</span>
                             </td>
-                            <!-- Preparation Days -->
+                            <!-- Updated At -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div th:if="${product.preparationDays != null}" class="flex items-center gap-1">
+                                <div th:if="${product.updatedAt != null}" class="flex items-center gap-1">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <span class="text-sm text-gray-600">
-                                        <span th:if="${product.preparationDays == 0}">Mismo día</span>
-                                        <span th:if="${product.preparationDays == 1}">1 día</span>
-                                        <span th:if="${product.preparationDays > 1}"
-                                            th:text="${product.preparationDays + ' días'}"></span>
-                                    </span>
+                                    <span class="text-sm text-gray-600"
+                                        th:text="${#temporals.format(product.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
                                 </div>
-                                <span th:if="${product.preparationDays == null}" class="text-sm text-gray-400">-</span>
+                                <span th:if="${product.updatedAt == null}" class="text-sm text-gray-400">-</span>
                             </td>
                             <!-- Actions -->
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">

@@ -4,6 +4,7 @@ import com.malva_pastry_shop.backend.domain.inventory.Product;
 import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
+import com.malva_pastry_shop.backend.dto.request.UpdateProductRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -68,5 +69,36 @@ public class ProductService {
         }
 
         return productRepository.save(product);
+    }
+
+    @Transactional
+    public Product update(Long id, UpdateProductRequest request) {
+        Product product = findById(id);
+
+        if (productRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), id)) {
+            throw new IllegalArgumentException("Ya existe otro producto activo con el nombre: " + request.getName());
+        }
+
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPreparationDays(request.getPreparationDays());
+        product.setBasePrice(request.getBasePrice());
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada"));
+            product.setCategory(category);
+        } else {
+            product.setCategory(null);
+        }
+
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public void softDelete(Long id, User deletedBy) {
+        Product product = findById(id);
+        product.softDelete(deletedBy);
+        productRepository.save(product);
     }
 }

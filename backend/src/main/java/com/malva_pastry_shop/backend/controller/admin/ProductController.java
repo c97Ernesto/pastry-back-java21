@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.malva_pastry_shop.backend.domain.inventory.Product;
 import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
+import com.malva_pastry_shop.backend.dto.request.UpdateProductRequest;
 import com.malva_pastry_shop.backend.service.CategoryService;
 import com.malva_pastry_shop.backend.service.ProductService;
 import com.malva_pastry_shop.backend.domain.auth.User;
@@ -107,6 +108,56 @@ public class ProductController {
             return "products/show";
         } catch (EntityNotFoundException e) {
             return "redirect:/products";
+        }
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        try {
+            Product product = productService.findById(id);
+
+            UpdateProductRequest request = new UpdateProductRequest();
+            request.setName(product.getName());
+            request.setDescription(product.getDescription());
+            request.setPreparationDays(product.getPreparationDays());
+            request.setBasePrice(product.getBasePrice());
+            request.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
+
+            model.addAttribute("product", request);
+            model.addAttribute("productId", id);
+            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Editar Producto");
+            return "products/edit";
+        } catch (EntityNotFoundException e) {
+            return "redirect:/products";
+        }
+    }
+
+    @PostMapping("/{id}")
+    public String update(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("product") UpdateProductRequest request,
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("productId", id);
+            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Editar Producto");
+            return "products/edit";
+        }
+
+        try {
+            productService.update(id, request);
+            redirectAttributes.addFlashAttribute("success", "Producto actualizado exitosamente");
+            return "redirect:/products";
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("productId", id);
+            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Editar Producto");
+            return "products/edit";
         }
     }
 }
