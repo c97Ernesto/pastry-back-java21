@@ -2,12 +2,21 @@ package com.malva_pastry_shop.backend.controller.admin;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.malva_pastry_shop.backend.domain.inventory.Category;
+import com.malva_pastry_shop.backend.dto.request.CreateCategoryRequest;
 import com.malva_pastry_shop.backend.service.CategoryService;
 import com.malva_pastry_shop.backend.service.ProductService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +54,36 @@ public class CategoryController {
         model.addAttribute("categories", categories);
         model.addAttribute("pageTitle", "Categorias");
         return "categories/list";
+    }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("category", new CreateCategoryRequest());
+        model.addAttribute("pageTitle", "Nueva Categoria");
+        return "categories/create";
+    }
+
+    @PostMapping
+    public String create(
+            @Valid @ModelAttribute("category") CreateCategoryRequest request,
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("pageTitle", "Nueva Categoria");
+            return "categories/create";
+        }
+
+        try {
+            categoryService.create(request);
+            redirectAttributes.addFlashAttribute("success", "Categoria creada exitosamente");
+            return "redirect:/categories";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("pageTitle", "Nueva Categoria");
+            return "categories/create";
+        }
     }
 
 }

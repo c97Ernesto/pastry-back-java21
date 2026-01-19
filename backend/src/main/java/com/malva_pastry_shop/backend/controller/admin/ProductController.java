@@ -2,12 +2,24 @@ package com.malva_pastry_shop.backend.controller.admin;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.malva_pastry_shop.backend.domain.inventory.Product;
+import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
 import com.malva_pastry_shop.backend.service.CategoryService;
 import com.malva_pastry_shop.backend.service.ProductService;
+import com.malva_pastry_shop.backend.domain.auth.User;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,5 +62,51 @@ public class ProductController {
         model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
         model.addAttribute("pageTitle", "Productos");
         return "products/list";
+    }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("product", new CreateProductRequest());
+        model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+        model.addAttribute("pageTitle", "Nuevo Producto");
+        return "products/create";
+    }
+
+    @PostMapping
+    public String create(
+            @Valid @ModelAttribute("product") CreateProductRequest request,
+            BindingResult result,
+            @AuthenticationPrincipal User currentUser,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Nuevo Producto");
+            return "products/create";
+        }
+
+        try {
+            productService.create(request, currentUser);
+            redirectAttributes.addFlashAttribute("success", "Producto creado exitosamente");
+            return "redirect:/products";
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Nuevo Producto");
+            return "products/create";
+        }
+    }
+
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id, Model model) {
+        try {
+            Product product = productService.findById(id);
+            model.addAttribute("product", product);
+            model.addAttribute("pageTitle", product.getName());
+            return "products/show";
+        } catch (EntityNotFoundException e) {
+            return "redirect:/products";
+        }
     }
 }

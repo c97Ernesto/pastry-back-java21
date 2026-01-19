@@ -1,13 +1,16 @@
 package com.malva_pastry_shop.backend.service;
 
-import com.malva_pastry_shop.backend.domain.inventory.Category;
-import com.malva_pastry_shop.backend.repository.CategoryRepository;
-import com.malva_pastry_shop.backend.repository.ProductRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.malva_pastry_shop.backend.domain.inventory.Category;
+import com.malva_pastry_shop.backend.dto.request.CreateCategoryRequest;
+import com.malva_pastry_shop.backend.repository.CategoryRepository;
+import com.malva_pastry_shop.backend.repository.ProductRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 
 @Service
 public class CategoryService {
@@ -31,5 +34,18 @@ public class CategoryService {
     public Category findById(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada con ID: " + id));
+    }
+
+    @Transactional
+    public Category create(CreateCategoryRequest request) {
+        if (categoryRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException("Ya existe una categoria con el nombre: " + request.getName());
+        }
+
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+
+        return categoryRepository.save(category);
     }
 }
