@@ -34,7 +34,7 @@ public class UserController {
     @GetMapping
     public String list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "50") int size,
             Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());

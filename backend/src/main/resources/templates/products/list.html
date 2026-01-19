@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title th:text="${pageTitle}">Productos</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+
+        <!-- Header Actions -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <!-- Search and Filter -->
+            <form th:action="@{/products}" method="get" class="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <input type="text" name="search" th:value="${search}" placeholder="Buscar productos..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <!-- Category Filter -->
+                <select name="categoryId"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 bg-white"
+                    onchange="this.form.submit()">
+                    <option value="">Todas las categorías</option>
+                    <option th:each="category : ${categories.content}" th:value="${category.id}"
+                        th:text="${category.name}" th:selected="${categoryId == category.id}"></option>
+                </select>
+                <button type="submit"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    Filtrar
+                </button>
+            </form>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                <a th:href="@{/products/deleted}"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span class="hidden sm:inline">Papelera</span>
+                </a>
+                <a th:href="@{/products/new}"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nuevo Producto
+                </a>
+            </div>
+        </div>
+
+        <!-- Active Filters -->
+        <div th:if="${search != null || categoryId != null}" class="flex items-center gap-2 mb-4">
+            <span class="text-sm text-gray-500">Filtros activos:</span>
+            <div class="flex flex-wrap gap-2">
+                <span th:if="${search != null}"
+                    class="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
+                    Búsqueda: "<span th:text="${search}"></span>"
+                    <a th:href="@{/products(categoryId=${categoryId})}" class="hover:text-primary-900">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+                <span th:if="${categoryId != null}"
+                    class="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
+                    Categoría: <span
+                        th:text="${categories.content.?[id == __${categoryId}__].empty ? 'Desconocida' : categories.content.?[id == __${categoryId}__][0].name}"></span>
+                    <a th:href="@{/products(search=${search})}" class="hover:text-primary-900">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+            </div>
+            <a th:href="@{/products}" class="text-sm text-gray-500 hover:text-gray-700 underline">Limpiar filtros</a>
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Producto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Categoría</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Precio</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Preparación</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="product : ${products.content}" class="hover:bg-gray-50">
+                            <!-- Product Name & Description -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <a th:href="@{/products/{id}(id=${product.id})}"
+                                            class="font-medium text-gray-900 hover:text-primary-600 transition-colors"
+                                            th:text="${product.name}"></a>
+                                        <p class="text-sm text-gray-500 truncate max-w-xs"
+                                            th:text="${product.description ?: 'Sin descripción'}"></p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Category -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${product.category != null}"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                    th:text="${product.category.name}"></span>
+                                <span th:if="${product.category == null}" class="text-sm text-gray-400 italic">Sin
+                                    categoría</span>
+                            </td>
+                            <!-- Price -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${product.basePrice != null}"
+                                    class="text-sm font-semibold text-gray-900"
+                                    th:text="${'$' + #numbers.formatDecimal(product.basePrice, 1, 2)}"></span>
+                                <span th:if="${product.basePrice == null}" class="text-sm text-gray-400 italic">Sin
+                                    precio</span>
+                            </td>
+                            <!-- Preparation Days -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div th:if="${product.preparationDays != null}" class="flex items-center gap-1">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-sm text-gray-600">
+                                        <span th:if="${product.preparationDays == 0}">Mismo día</span>
+                                        <span th:if="${product.preparationDays == 1}">1 día</span>
+                                        <span th:if="${product.preparationDays > 1}"
+                                            th:text="${product.preparationDays + ' días'}"></span>
+                                    </span>
+                                </div>
+                                <span th:if="${product.preparationDays == null}" class="text-sm text-gray-400">-</span>
+                            </td>
+                            <!-- Actions -->
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <div class="flex items-center justify-end gap-1">
+                                    <!-- View -->
+                                    <a th:href="@{/products/{id}(id=${product.id})}"
+                                        class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                        title="Ver detalles">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                    <!-- Edit -->
+                                    <a th:href="@{/products/{id}/edit(id=${product.id})}"
+                                        class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                        title="Editar">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+                                    <!-- Delete -->
+                                    <form th:action="@{/products/{id}/delete(id=${product.id})}" method="post"
+                                        onsubmit="return confirm('¿Estás seguro de eliminar este producto? Se moverá a la papelera.');">
+                                        <button type="submit"
+                                            class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Eliminar">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State -->
+                        <tr th:if="${products.content.empty}">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <p class="mt-2 font-medium text-gray-900">No hay productos</p>
+                                <p th:if="${search != null || categoryId != null}" class="text-sm">No se encontraron
+                                    productos con los filtros aplicados</p>
+                                <p th:if="${search == null && categoryId == null}" class="text-sm">Aún no hay productos
+                                    registrados en el sistema</p>
+                                <a th:href="@{/products/new}"
+                                    class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Crear primer producto
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${!products.content.empty}" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <!-- Info -->
+                    <div class="text-sm text-gray-500">
+                        Mostrando
+                        <span class="font-medium" th:text="${products.number * products.size + 1}"></span>
+                        -
+                        <span class="font-medium"
+                            th:text="${products.number * products.size + products.numberOfElements}"></span>
+                        de
+                        <span class="font-medium" th:text="${products.totalElements}"></span>
+                        productos
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav th:if="${products.totalPages > 1}" class="flex items-center gap-1">
+                        <!-- Previous -->
+                        <a th:if="${products.hasPrevious()}"
+                            th:href="@{/products(page=${products.number - 1}, size=${products.size}, search=${search}, categoryId=${categoryId})}"
+                            class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </a>
+                        <span th:if="${!products.hasPrevious()}"
+                            class="px-3 py-2 text-sm text-gray-300 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </span>
+
+                        <!-- Page Numbers -->
+                        <th:block th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}">
+                            <a th:if="${i != products.number}"
+                                th:href="@{/products(page=${i}, size=${products.size}, search=${search}, categoryId=${categoryId})}"
+                                th:text="${i + 1}"
+                                class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"></a>
+                            <span th:if="${i == products.number}" th:text="${i + 1}"
+                                class="px-3 py-2 text-sm text-white bg-primary-600 border border-primary-600 rounded-lg"></span>
+                        </th:block>
+
+                        <!-- Next -->
+                        <a th:if="${products.hasNext()}"
+                            th:href="@{/products(page=${products.number + 1}, size=${products.size}, search=${search}, categoryId=${categoryId})}"
+                            class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                        <span th:if="${!products.hasNext()}"
+                            class="px-3 py-2 text-sm text-gray-300 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </span>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div th:if="${!products.content.empty}" class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                <p class="text-sm text-gray-500">Total productos</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${products.totalElements}"></p>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                <p class="text-sm text-gray-500">Categorías</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${categories.totalElements}"></p>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                <p class="text-sm text-gray-500">Página actual</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${products.number + 1} + ' / ' + ${products.totalPages}"></p>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                <p class="text-sm text-gray-500">Por página</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${products.size}"></p>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
