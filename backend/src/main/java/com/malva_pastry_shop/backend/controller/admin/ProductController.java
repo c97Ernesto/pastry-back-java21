@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.malva_pastry_shop.backend.domain.inventory.Product;
 import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
 import com.malva_pastry_shop.backend.dto.request.UpdateProductRequest;
@@ -159,5 +160,45 @@ public class ProductController {
             model.addAttribute("pageTitle", "Editar Producto");
             return "products/edit";
         }
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            productService.softDelete(id, currentUser);
+            redirectAttributes.addFlashAttribute("success", "Producto eliminado exitosamente");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
+        }
+        return "redirect:/products";
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    @PostMapping("/{id}/restore")
+    public String restore(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            productService.restore(id);
+            redirectAttributes.addFlashAttribute("success", "Producto restaurado exitosamente");
+        } catch (EntityNotFoundException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/products";
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    @GetMapping("/deleted")
+    public String listDeleted(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("deletedAt").descending());
+        model.addAttribute("products", productService.findDeleted(pageable));
+        model.addAttribute("pageTitle", "Productos Eliminados");
+        return "products/deleted";
     }
 }

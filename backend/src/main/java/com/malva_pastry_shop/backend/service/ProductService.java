@@ -101,4 +101,17 @@ public class ProductService {
         product.softDelete(deletedBy);
         productRepository.save(product);
     }
+
+    @Transactional
+    public Product restore(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+
+        if (product.getDeletedAt() == null) {
+            throw new IllegalStateException("El producto no esta eliminado");
+        }
+
+        product.restore();
+        return productRepository.save(product);
+    }
 }
