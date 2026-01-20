@@ -2,13 +2,12 @@ package com.malva_pastry_shop.backend.domain.inventory;
 
 import java.math.BigDecimal;
 
+import com.malva_pastry_shop.backend.domain.common.TimestampedEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -24,11 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Ingredient {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Ingredient extends TimestampedEntity {
 
     @NotBlank(message = "El nombre del ingrediente es requerido")
     @Size(max = 100, message = "El nombre del ingrediente no puede exceder los 100 caracteres")
