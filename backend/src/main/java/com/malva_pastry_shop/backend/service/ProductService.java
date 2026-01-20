@@ -3,8 +3,7 @@ package com.malva_pastry_shop.backend.service;
 import com.malva_pastry_shop.backend.domain.inventory.Product;
 import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.domain.auth.User;
-import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
-import com.malva_pastry_shop.backend.dto.request.UpdateProductRequest;
+import com.malva_pastry_shop.backend.dto.request.ProductRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -49,8 +48,9 @@ public class ProductService {
     }
 
     // ========== CRUD ==========
+
     @Transactional
-    public Product create(CreateProductRequest request, User createdBy) {
+    public Product create(ProductRequest request, User createdBy) {
         if (productRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
             throw new IllegalArgumentException("Ya existe un producto activo con el nombre: " + request.getName());
         }
@@ -64,7 +64,7 @@ public class ProductService {
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada"));
+                    .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
             product.setCategory(category);
         }
 
@@ -72,7 +72,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product update(Long id, UpdateProductRequest request) {
+    public Product update(Long id, ProductRequest request) {
         Product product = findById(id);
 
         if (productRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), id)) {
@@ -86,7 +86,7 @@ public class ProductService {
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada"));
+                    .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
             product.setCategory(category);
         } else {
             product.setCategory(null);
@@ -94,6 +94,8 @@ public class ProductService {
 
         return productRepository.save(product);
     }
+
+    // ========== Soft Delete ==========
 
     @Transactional
     public void softDelete(Long id, User deletedBy) {
@@ -108,10 +110,25 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         if (product.getDeletedAt() == null) {
-            throw new IllegalStateException("El producto no esta eliminado");
+            throw new IllegalStateException("El producto no está eliminado");
         }
 
         product.restore();
         return productRepository.save(product);
+    }
+
+    // ========== Hard Delete ==========
+
+    @Transactional
+    public void hardDelete(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+
+        // Solo se puede hacer hard delete si está en papelera
+        if (product.getDeletedAt() == null) {
+            throw new IllegalStateException("Solo se pueden eliminar permanentemente los productos que están en la papelera");
+        }
+
+        productRepository.delete(product);
     }
 }

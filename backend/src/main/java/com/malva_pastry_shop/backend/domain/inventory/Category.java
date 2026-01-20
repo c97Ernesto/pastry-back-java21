@@ -1,6 +1,6 @@
 package com.malva_pastry_shop.backend.domain.inventory;
 
-import com.malva_pastry_shop.backend.domain.common.TimestampedEntity;
+import com.malva_pastry_shop.backend.domain.common.SoftDeletableEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,14 +16,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Category extends TimestampedEntity {
+public class Category extends SoftDeletableEntity {
 
-    @NotBlank(message = "El nombre de la categoria es requerido")
-    @Size(max = 100, message = "El nombre de la categoria no puede exceder los 100 caracteres")
+    @NotBlank(message = "El nombre de la categoría es requerido")
+    @Size(max = 100, message = "El nombre de la categoría no puede exceder los 100 caracteres")
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Size(max = 500, message = "La descripcion no puede exceder los 500 caracteres")
+    @Size(max = 500, message = "La descripción no puede exceder los 500 caracteres")
     @Column(columnDefinition = "TEXT")
     private String description;
 

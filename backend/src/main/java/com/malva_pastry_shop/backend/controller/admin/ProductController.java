@@ -13,8 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.malva_pastry_shop.backend.domain.inventory.Product;
-import com.malva_pastry_shop.backend.dto.request.CreateProductRequest;
-import com.malva_pastry_shop.backend.dto.request.UpdateProductRequest;
+import com.malva_pastry_shop.backend.dto.request.ProductRequest;
 import com.malva_pastry_shop.backend.service.CategoryService;
 import com.malva_pastry_shop.backend.service.ProductService;
 import com.malva_pastry_shop.backend.domain.auth.User;
@@ -39,6 +38,8 @@ public class ProductController {
         this.categoryService = categoryService;
     }
 
+    // ========== Listados ==========
+
     @GetMapping
     public String list(
             @RequestParam(defaultValue = "0") int page,
@@ -61,44 +62,25 @@ public class ProductController {
         }
 
         model.addAttribute("products", products);
-        model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+        model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
         model.addAttribute("pageTitle", "Productos");
         return "products/list";
     }
 
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("product", new CreateProductRequest());
-        model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
-        model.addAttribute("pageTitle", "Nuevo Producto");
-        return "products/create";
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    @GetMapping("/deleted")
+    public String listDeleted(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("deletedAt").descending());
+        model.addAttribute("products", productService.findDeleted(pageable));
+        model.addAttribute("pageTitle", "Productos Eliminados");
+        return "products/deleted";
     }
 
-    @PostMapping
-    public String create(
-            @Valid @ModelAttribute("product") CreateProductRequest request,
-            BindingResult result,
-            @AuthenticationPrincipal User currentUser,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-
-        if (result.hasErrors()) {
-            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
-            model.addAttribute("pageTitle", "Nuevo Producto");
-            return "products/create";
-        }
-
-        try {
-            productService.create(request, currentUser);
-            redirectAttributes.addFlashAttribute("success", "Producto creado exitosamente");
-            return "redirect:/products";
-        } catch (IllegalArgumentException | EntityNotFoundException e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
-            model.addAttribute("pageTitle", "Nuevo Producto");
-            return "products/create";
-        }
-    }
+    // ========== CRUD ==========
 
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
@@ -112,12 +94,46 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("product", new ProductRequest());
+        model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
+        model.addAttribute("pageTitle", "Nuevo Producto");
+        return "products/create";
+    }
+
+    @PostMapping
+    public String create(
+            @Valid @ModelAttribute("product") ProductRequest request,
+            BindingResult result,
+            @AuthenticationPrincipal User currentUser,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Nuevo Producto");
+            return "products/create";
+        }
+
+        try {
+            productService.create(request, currentUser);
+            redirectAttributes.addFlashAttribute("success", "Producto creado exitosamente");
+            return "redirect:/products";
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
+            model.addAttribute("pageTitle", "Nuevo Producto");
+            return "products/create";
+        }
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         try {
             Product product = productService.findById(id);
 
-            UpdateProductRequest request = new UpdateProductRequest();
+            ProductRequest request = new ProductRequest();
             request.setName(product.getName());
             request.setDescription(product.getDescription());
             request.setPreparationDays(product.getPreparationDays());
@@ -126,7 +142,7 @@ public class ProductController {
 
             model.addAttribute("product", request);
             model.addAttribute("productId", id);
-            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
             model.addAttribute("pageTitle", "Editar Producto");
             return "products/edit";
         } catch (EntityNotFoundException e) {
@@ -137,14 +153,14 @@ public class ProductController {
     @PostMapping("/{id}")
     public String update(
             @PathVariable Long id,
-            @Valid @ModelAttribute("product") UpdateProductRequest request,
+            @Valid @ModelAttribute("product") ProductRequest request,
             BindingResult result,
             Model model,
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
             model.addAttribute("productId", id);
-            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
             model.addAttribute("pageTitle", "Editar Producto");
             return "products/edit";
         }
@@ -156,11 +172,13 @@ public class ProductController {
         } catch (IllegalArgumentException | EntityNotFoundException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("productId", id);
-            model.addAttribute("categories", categoryService.findAll(Pageable.unpaged()));
+            model.addAttribute("categories", categoryService.findAllActive(Pageable.unpaged()));
             model.addAttribute("pageTitle", "Editar Producto");
             return "products/edit";
         }
     }
+
+    // ========== Soft Delete ==========
 
     @PostMapping("/{id}/delete")
     public String delete(
@@ -170,7 +188,7 @@ public class ProductController {
 
         try {
             productService.softDelete(id, currentUser);
-            redirectAttributes.addFlashAttribute("success", "Producto eliminado exitosamente");
+            redirectAttributes.addFlashAttribute("success", "Producto movido a la papelera");
         } catch (EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
         }
@@ -186,19 +204,20 @@ public class ProductController {
         } catch (EntityNotFoundException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/products";
+        return "redirect:/products/deleted";
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
-    @GetMapping("/deleted")
-    public String listDeleted(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size,
-            Model model) {
+    // ========== Hard Delete ==========
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("deletedAt").descending());
-        model.addAttribute("products", productService.findDeleted(pageable));
-        model.addAttribute("pageTitle", "Productos Eliminados");
-        return "products/deleted";
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    @PostMapping("/{id}/hard-delete")
+    public String hardDelete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            productService.hardDelete(id);
+            redirectAttributes.addFlashAttribute("success", "Producto eliminado permanentemente");
+        } catch (EntityNotFoundException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/products/deleted";
     }
 }
