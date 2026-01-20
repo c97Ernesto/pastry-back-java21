@@ -11,7 +11,7 @@ import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CategoryService {
@@ -81,7 +81,8 @@ public class CategoryService {
         long productCount = productRepository.countByCategoryIdAndDeletedAtIsNull(id);
         if (productCount > 0) {
             throw new IllegalStateException(
-                    "No se puede eliminar la categoría porque tiene " + productCount + " producto(s) activo(s) asociado(s)");
+                    "No se puede eliminar la categoría porque tiene " + productCount
+                            + " producto(s) activo(s) asociado(s)");
         }
 
         category.softDelete(deletedBy);
@@ -115,14 +116,16 @@ public class CategoryService {
 
         // Solo se puede hacer hard delete si está en papelera
         if (category.getDeletedAt() == null) {
-            throw new IllegalStateException("Solo se pueden eliminar permanentemente las categorías que están en la papelera");
+            throw new IllegalStateException(
+                    "Solo se pueden eliminar permanentemente las categorías que están en la papelera");
         }
 
         // Verificar que no tenga productos (ni activos ni eliminados)
         long totalProducts = productRepository.countByCategoryId(id);
         if (totalProducts > 0) {
             throw new IllegalStateException(
-                    "No se puede eliminar permanentemente la categoría porque tiene " + totalProducts + " producto(s) asociado(s)");
+                    "No se puede eliminar permanentemente la categoría porque tiene " + totalProducts
+                            + " producto(s) asociado(s)");
         }
 
         categoryRepository.delete(category);

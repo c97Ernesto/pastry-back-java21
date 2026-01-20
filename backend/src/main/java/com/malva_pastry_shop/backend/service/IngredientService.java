@@ -7,9 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.malva_pastry_shop.backend.domain.inventory.Ingredient;
+import com.malva_pastry_shop.backend.dto.request.IngredientRequest;
 import com.malva_pastry_shop.backend.repository.IngredientRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class IngredientService {
@@ -37,6 +39,23 @@ public class IngredientService {
 
     public List<Ingredient> findAllForSelect() {
         return ingredientRepository.findAllByOrderByNameAsc();
+    }
+
+    // ========== CRUD ==========
+
+    @Transactional
+    public Ingredient create(IngredientRequest request) {
+        if (ingredientRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException("Ya existe un ingrediente con el nombre: " + request.getName());
+        }
+
+        Ingredient ingredient = new Ingredient();
+        ingredient.setName(request.getName());
+        ingredient.setDescription(request.getDescription());
+        ingredient.setUnitCost(request.getUnitCost());
+        ingredient.setUnitOfMeasure(request.getUnitOfMeasure());
+
+        return ingredientRepository.save(ingredient);
     }
 
 }
