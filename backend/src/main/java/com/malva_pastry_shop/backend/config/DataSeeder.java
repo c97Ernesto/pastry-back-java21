@@ -355,7 +355,7 @@ public class DataSeeder implements CommandLineRunner {
 
         private void createIngredient(String name, String description, BigDecimal unitCost,
                         UnitOfMeasure unitOfMeasure) {
-                if (!ingredientRepository.existsByName(name)) {
+                if (!ingredientRepository.existsByNameAndDeletedAtIsNull(name)) {
                         Ingredient ingredient = new Ingredient(name, unitCost, unitOfMeasure);
                         ingredient.setDescription(description);
                         ingredientRepository.save(ingredient);
@@ -395,7 +395,7 @@ public class DataSeeder implements CommandLineRunner {
                         String name = (String) data[0];
                         String description = (String) data[1];
 
-                        if (!categoryRepository.existsByName(name)) {
+                        if (!categoryRepository.existsByNameAndDeletedAtIsNull(name)) {
                                 Category category = new Category(name, description);
                                 categoryRepository.save(category);
                                 categoryMap.put(name, category);

@@ -79,6 +79,14 @@ public class Product extends SoftDeletableEntity {
     @OrderBy("id ASC")
     private List<ProductIngredient> productIngredients = new ArrayList<>();
 
+    /**
+     * Relacion con Tags del Producto.
+     * Cascade ALL + orphanRemoval para gestion automatica del ciclo de vida.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("id ASC")
+    private List<ProductTag> productTags = new ArrayList<>();
+
     // ==================== CONSTRUCTORES ====================
 
     public Product(String name, BigDecimal basePrice) {
