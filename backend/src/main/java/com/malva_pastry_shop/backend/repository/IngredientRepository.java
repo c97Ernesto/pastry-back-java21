@@ -12,17 +12,23 @@ import java.util.Optional;
 @Repository
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
-    // Busqueda por nombre
-    Page<Ingredient> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    // ========== Consultas activos (no eliminados) ==========
 
-    // Buscar por nombre exacto
-    Optional<Ingredient> findByName(String name);
+    Page<Ingredient> findByDeletedAtIsNull(Pageable pageable);
 
-    // Verificar nombre duplicado
-    boolean existsByName(String name);
+    Page<Ingredient> findByNameContainingIgnoreCaseAndDeletedAtIsNull(String name, Pageable pageable);
 
-    boolean existsByNameAndIdNot(String name, Long id);
+    Optional<Ingredient> findByIdAndDeletedAtIsNull(Long id);
 
-    // Listar todos ordenados por nombre
-    List<Ingredient> findAllByOrderByNameAsc();
+    List<Ingredient> findByDeletedAtIsNullOrderByNameAsc();
+
+    // ========== Consultas papelera (eliminados) ==========
+
+    Page<Ingredient> findByDeletedAtIsNotNull(Pageable pageable);
+
+    // ========== Validaciones de nombre único ==========
+
+    boolean existsByNameAndDeletedAtIsNull(String name);
+
+    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
 }

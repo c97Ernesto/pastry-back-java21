@@ -2,7 +2,7 @@ package com.malva_pastry_shop.backend.domain.inventory;
 
 import java.math.BigDecimal;
 
-import com.malva_pastry_shop.backend.domain.common.TimestampedEntity;
+import com.malva_pastry_shop.backend.domain.common.SoftDeletableEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Ingredient extends TimestampedEntity {
+public class Ingredient extends SoftDeletableEntity {
 
     @NotBlank(message = "El nombre del ingrediente es requerido")
     @Size(max = 100, message = "El nombre del ingrediente no puede exceder los 100 caracteres")

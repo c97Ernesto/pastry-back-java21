@@ -3,7 +3,7 @@
     layout:decorate="~{layout/main}">
 
 <head>
-    <title th:text="${pageTitle}">Nuevo Ingrediente</title>
+    <title th:text="${pageTitle}">Editar Ingrediente</title>
 </head>
 
 <body>
@@ -18,7 +18,7 @@
                             d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                             clip-rule="evenodd" />
                     </svg>
-                    <span class="text-gray-700 font-medium">Nuevo</span>
+                    <span class="text-gray-700 font-medium">Editar</span>
                 </li>
             </ol>
         </nav>
@@ -29,7 +29,8 @@
                 <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{/ingredients}" th:object="${ingredient}" method="post" class="space-y-6">
+            <form th:action="@{/ingredients/{id}(id=${ingredientId})}" th:object="${ingredient}" method="post"
+                class="space-y-6">
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
                         Nombre <span class="text-red-500">*</span>
@@ -101,7 +102,7 @@
                 <div class="flex items-center gap-4 pt-4">
                     <button type="submit"
                         class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-                        Guardar Ingrediente
+                        Actualizar Ingrediente
                     </button>
                     <a th:href="@{/ingredients}"
                         class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
