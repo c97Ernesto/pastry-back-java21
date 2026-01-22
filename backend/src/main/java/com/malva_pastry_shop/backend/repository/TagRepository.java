@@ -1,6 +1,6 @@
 package com.malva_pastry_shop.backend.repository;
 
-import com.malva_pastry_shop.backend.domain.inventory.Tag;
+import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

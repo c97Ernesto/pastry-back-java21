@@ -1,7 +1,7 @@
 package com.malva_pastry_shop.backend.service;
 
-import com.malva_pastry_shop.backend.domain.inventory.Product;
-import com.malva_pastry_shop.backend.domain.inventory.Category;
+import com.malva_pastry_shop.backend.domain.storefront.Product;
+import com.malva_pastry_shop.backend.domain.storefront.Category;
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.dto.request.ProductRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
@@ -108,7 +108,8 @@ public class ProductService {
             throw new IllegalStateException("El producto no está eliminado");
         }
 
-        // Verificar que no exista otro producto activo con el mismo nombre (case-insensitive)
+        // Verificar que no exista otro producto activo con el mismo nombre
+        // (case-insensitive)
         productRepository.findByNameIgnoreCase(product.getName()).ifPresent(existing -> {
             if (!existing.getId().equals(id) && !existing.isDeleted()) {
                 throw new IllegalStateException("Ya existe un producto activo con el nombre: " + product.getName());
@@ -128,7 +129,8 @@ public class ProductService {
 
         // Solo se puede hacer hard delete si está en papelera
         if (product.getDeletedAt() == null) {
-            throw new IllegalStateException("Solo se pueden eliminar permanentemente los productos que están en la papelera");
+            throw new IllegalStateException(
+                    "Solo se pueden eliminar permanentemente los productos que están en la papelera");
         }
 
         productRepository.delete(product);
@@ -153,7 +155,7 @@ public class ProductService {
             if (existing.isDeleted()) {
                 throw new IllegalArgumentException(
                         "Ya existe un producto con el nombre '" + name + "' en la papelera. " +
-                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
+                                "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
             } else {
                 throw new IllegalArgumentException("Ya existe un producto con el nombre: " + name);
             }

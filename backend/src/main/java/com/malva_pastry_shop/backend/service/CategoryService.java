@@ -5,7 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.malva_pastry_shop.backend.domain.auth.User;
-import com.malva_pastry_shop.backend.domain.inventory.Category;
+import com.malva_pastry_shop.backend.domain.storefront.Category;
 import com.malva_pastry_shop.backend.dto.request.CategoryRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
@@ -93,7 +93,8 @@ public class CategoryService {
             throw new IllegalStateException("La categoría no está eliminada");
         }
 
-        // Verificar que no exista otra categoría activa con el mismo nombre (case-insensitive)
+        // Verificar que no exista otra categoría activa con el mismo nombre
+        // (case-insensitive)
         categoryRepository.findByNameIgnoreCase(category.getName()).ifPresent(existing -> {
             if (!existing.getId().equals(id) && !existing.isDeleted()) {
                 throw new IllegalStateException("Ya existe una categoría activa con el nombre: " + category.getName());
@@ -141,7 +142,8 @@ public class CategoryService {
      * Verifica tanto categorías activas como en papelera.
      *
      * @param name      Nombre a validar
-     * @param excludeId ID de la categoría a excluir (para updates), null para creates
+     * @param excludeId ID de la categoría a excluir (para updates), null para
+     *                  creates
      */
     private void validateCategoryName(String name, Long excludeId) {
         categoryRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
@@ -153,7 +155,7 @@ public class CategoryService {
             if (existing.isDeleted()) {
                 throw new IllegalArgumentException(
                         "Ya existe una categoría con el nombre '" + name + "' en la papelera. " +
-                        "Puedes restaurarla o eliminarla permanentemente antes de crear una nueva.");
+                                "Puedes restaurarla o eliminarla permanentemente antes de crear una nueva.");
             } else {
                 throw new IllegalArgumentException("Ya existe una categoría con el nombre: " + name);
             }

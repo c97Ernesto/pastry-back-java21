@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.malva_pastry_shop.backend.domain.inventory.Tag;
+import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.dto.request.TagRequest;
 import com.malva_pastry_shop.backend.repository.TagRepository;
 import com.malva_pastry_shop.backend.util.SlugUtil;
@@ -66,7 +66,7 @@ public class TagService {
             if (existingTag.isDeleted()) {
                 throw new IllegalArgumentException(
                         "Ya existe un tag con el nombre '" + name + "' en la papelera. " +
-                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
+                                "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
             } else {
                 throw new IllegalArgumentException("Ya existe un tag con el nombre: " + name);
             }
