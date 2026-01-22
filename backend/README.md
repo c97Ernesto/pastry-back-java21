@@ -130,7 +130,6 @@ spring.datasource.password=tu_password
 📚 **Documentación Completa del Sistema:**
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Arquitectura del sistema, patrones de diseño, DDD
-- **[DATABASE.md](DATABASE.md)** - Esquema de base de datos, relaciones, constraints
 
 ---
 

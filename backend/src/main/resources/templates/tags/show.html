@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title th:text="${pageTitle}">Detalle del Tag</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a th:href="@{/tags}" class="text-gray-500 hover:text-primary-600">Tags</a></li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-gray-700 font-medium" th:text="${tag.name}">Tag</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Tag Card -->
+        <div class="max-w-3xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <span
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-800 rounded-full text-lg font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            <span th:text="${tag.name}"></span>
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-center gap-2 text-primary-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <span class="text-2xl font-bold" th:text="${usageCount}">0</span>
+                            <span class="text-gray-500">productos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prose max-w-none text-gray-600 mb-6" th:if="${tag.description}">
+                    <p th:text="${tag.description}"></p>
+                </div>
+                <div th:unless="${tag.description}" class="text-gray-400 italic mb-6">
+                    Sin descripcion
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <dt class="text-sm font-medium text-gray-500 mb-1">Slug (identificador)</dt>
+                    <dd class="font-mono text-sm text-gray-900" th:text="${tag.slug}"></dd>
+                </div>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <dt class="text-sm font-medium text-gray-500">Fecha de creacion</dt>
+                        <dd class="mt-1 text-lg font-semibold text-gray-900"
+                            th:text="${#temporals.format(tag.insertedAt, 'dd/MM/yyyy HH:mm')}"></dd>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <dt class="text-sm font-medium text-gray-500">Ultima actualizacion</dt>
+                        <dd class="mt-1 text-lg font-semibold text-gray-900"
+                            th:text="${#temporals.format(tag.updatedAt, 'dd/MM/yyyy HH:mm')}"></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
+                <a th:href="@{/tags}"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Volver al listado
+                </a>
+                <div class="flex gap-2">
+                    <a th:href="@{/tags/{id}/edit(id=${tag.id})}"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        Editar
+                    </a>
+                    <form th:action="@{/tags/{id}/delete(id=${tag.id})}" method="post"
+                        onsubmit="return confirm('¿Estas seguro de eliminar este tag? Se movera a la papelera.');">
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

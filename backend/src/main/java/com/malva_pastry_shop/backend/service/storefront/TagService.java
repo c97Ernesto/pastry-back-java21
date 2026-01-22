@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.dto.request.TagRequest;
 import com.malva_pastry_shop.backend.repository.TagRepository;
@@ -33,6 +34,19 @@ public class TagService {
         return tagRepository.findByNameContainingIgnoreCaseAndDeletedAtIsNull(name, pageable);
     }
 
+    public Tag findById(Long id) {
+        return tagRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tag no encontrado con ID: " + id));
+    }
+
+    public List<Tag> findAllForSelect() {
+        return tagRepository.findByDeletedAtIsNullOrderByNameAsc();
+    }
+
+    public Page<Tag> findDeleted(Pageable pageable) {
+        return tagRepository.findByDeletedAtIsNotNull(pageable);
+    }
+
     // ========== CRUD ==========
 
     @Transactional
@@ -45,6 +59,61 @@ public class TagService {
         tag.setDescription(request.getDescription());
 
         return tagRepository.save(tag);
+    }
+
+    @Transactional
+    public Tag update(Long id, TagRequest request) {
+        Tag tag = findById(id);
+        validateTagName(request.getName(), id);
+
+        tag.setName(request.getName());
+        tag.setSlug(SlugUtil.generateSlug(request.getName()));
+        tag.setDescription(request.getDescription());
+
+        return tagRepository.save(tag);
+    }
+
+    // ========== Soft Delete ==========
+
+    @Transactional
+    public void softDelete(Long id, User deletedBy) {
+        Tag tag = findById(id);
+        tag.softDelete(deletedBy);
+        tagRepository.save(tag);
+    }
+
+    @Transactional
+    public Tag restore(Long id) {
+        Tag tag = tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tag no encontrado"));
+
+        if (tag.getDeletedAt() == null) {
+            throw new IllegalStateException("El tag no está eliminado");
+        }
+
+        // Verificar que no exista otro tag activo con el mismo nombre (case-insensitive)
+        tagRepository.findByNameIgnoreCase(tag.getName()).ifPresent(existing -> {
+            if (!existing.getId().equals(id) && !existing.isDeleted()) {
+                throw new IllegalStateException("Ya existe un tag activo con el nombre: " + tag.getName());
+            }
+        });
+
+        tag.restore();
+        return tagRepository.save(tag);
+    }
+
+    // ========== Hard Delete ==========
+
+    @Transactional
+    public void hardDelete(Long id) {
+        Tag tag = tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tag no encontrado"));
+
+        if (tag.getDeletedAt() == null) {
+            throw new IllegalStateException("Solo se pueden eliminar permanentemente los tags que están en la papelera");
+        }
+
+        tagRepository.delete(tag);
     }
 
     // ========== Validaciones ==========
