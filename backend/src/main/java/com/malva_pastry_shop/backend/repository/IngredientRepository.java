@@ -26,9 +26,7 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
     Page<Ingredient> findByDeletedAtIsNotNull(Pageable pageable);
 
-    // ========== Validaciones de nombre único ==========
+    // ========== Validacion de nombre unico (case-insensitive) ==========
 
-    boolean existsByNameAndDeletedAtIsNull(String name);
-
-    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
+    Optional<Ingredient> findByNameIgnoreCase(String name);
 }

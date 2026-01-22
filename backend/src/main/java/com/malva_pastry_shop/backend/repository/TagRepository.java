@@ -26,17 +26,9 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     Page<Tag> findByDeletedAtIsNotNull(Pageable pageable);
 
-    // ========== Validaciones de nombre unico ==========
+    // ========== Validacion de nombre unico (case-insensitive) ==========
 
-    boolean existsByNameAndDeletedAtIsNull(String name);
-
-    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
-
-    // ========== Validaciones de slug unico ==========
-
-    boolean existsBySlugAndDeletedAtIsNull(String slug);
-
-    boolean existsBySlugAndIdNotAndDeletedAtIsNull(String slug, Long id);
+    Optional<Tag> findByNameIgnoreCase(String name);
 
     // ========== Busqueda por IDs ==========
 

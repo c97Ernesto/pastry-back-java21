@@ -37,61 +37,39 @@ public class TagService {
 
     @Transactional
     public Tag create(TagRequest request) {
-        if (tagRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
-            throw new IllegalArgumentException("Ya existe un tag activo con el nombre: " + request.getName());
-        }
-
-        // Generar slug único a partir del nombre
-        String slug = generateUniqueSlug(request.getName(), null);
+        validateTagName(request.getName(), null);
 
         Tag tag = new Tag();
         tag.setName(request.getName());
-        tag.setSlug(slug);
+        tag.setSlug(SlugUtil.generateSlug(request.getName()));
         tag.setDescription(request.getDescription());
 
         return tagRepository.save(tag);
     }
 
-    // ========== Generación de Slug ==========
+    // ========== Validaciones ==========
 
     /**
-     * Genera un slug único a partir de un nombre.
-     * Si ya existe, agrega un sufijo numérico.
-     * 
-     * @param name      Nombre del tag
-     * @param excludeId ID del tag a excluir en la validación (para updates)
-     * @return Slug único
+     * Valida que el nombre del tag sea único (case-insensitive).
+     * Verifica tanto tags activos como en papelera.
+     *
+     * @param name      Nombre a validar
+     * @param excludeId ID del tag a excluir (para updates), null para creates
      */
-    private String generateUniqueSlug(String name, Long excludeId) {
-        String baseSlug = SlugUtil.generateSlug(name);
+    private void validateTagName(String name, Long excludeId) {
+        tagRepository.findByNameIgnoreCase(name).ifPresent(existingTag -> {
+            // Si es update y es el mismo tag, no hay conflicto
+            if (excludeId != null && existingTag.getId().equals(excludeId)) {
+                return;
+            }
 
-        if (baseSlug == null || baseSlug.isBlank()) {
-            throw new IllegalArgumentException("No se pudo generar un slug válido a partir del nombre");
-        }
-
-        String slug = baseSlug;
-        int counter = 1;
-
-        // Verificar unicidad y agregar sufijo si es necesario
-        while (true) {
-            boolean exists;
-
-            if (excludeId != null) {
-                // Para updates, excluir el propio tag
-                exists = tagRepository.existsBySlugAndIdNotAndDeletedAtIsNull(slug, excludeId);
+            if (existingTag.isDeleted()) {
+                throw new IllegalArgumentException(
+                        "Ya existe un tag con el nombre '" + name + "' en la papelera. " +
+                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
             } else {
-                // Para creates
-                exists = tagRepository.existsBySlugAndDeletedAtIsNull(slug);
+                throw new IllegalArgumentException("Ya existe un tag con el nombre: " + name);
             }
-
-            if (!exists) {
-                break;
-            }
-
-            counter++;
-            slug = SlugUtil.generateUniqueSlug(baseSlug, counter);
-        }
-
-        return slug;
+        });
     }
 }

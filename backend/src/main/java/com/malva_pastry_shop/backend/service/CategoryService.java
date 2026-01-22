@@ -47,9 +47,7 @@ public class CategoryService {
 
     @Transactional
     public Category create(CategoryRequest request) {
-        if (categoryRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
-            throw new IllegalArgumentException("Ya existe una categoría activa con el nombre: " + request.getName());
-        }
+        validateCategoryName(request.getName(), null);
 
         Category category = new Category();
         category.setName(request.getName());
@@ -61,10 +59,7 @@ public class CategoryService {
     @Transactional
     public Category update(Long id, CategoryRequest request) {
         Category category = findById(id);
-
-        if (categoryRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), id)) {
-            throw new IllegalArgumentException("Ya existe otra categoría activa con el nombre: " + request.getName());
-        }
+        validateCategoryName(request.getName(), id);
 
         category.setName(request.getName());
         category.setDescription(request.getDescription());
@@ -98,10 +93,12 @@ public class CategoryService {
             throw new IllegalStateException("La categoría no está eliminada");
         }
 
-        // Verificar que no exista otra categoría activa con el mismo nombre
-        if (categoryRepository.existsByNameAndDeletedAtIsNull(category.getName())) {
-            throw new IllegalStateException("Ya existe una categoría activa con el nombre: " + category.getName());
-        }
+        // Verificar que no exista otra categoría activa con el mismo nombre (case-insensitive)
+        categoryRepository.findByNameIgnoreCase(category.getName()).ifPresent(existing -> {
+            if (!existing.getId().equals(id) && !existing.isDeleted()) {
+                throw new IllegalStateException("Ya existe una categoría activa con el nombre: " + category.getName());
+            }
+        });
 
         category.restore();
         return categoryRepository.save(category);
@@ -135,5 +132,31 @@ public class CategoryService {
 
     public long countProducts(Long categoryId) {
         return productRepository.countByCategoryIdAndDeletedAtIsNull(categoryId);
+    }
+
+    // ========== Validaciones ==========
+
+    /**
+     * Valida que el nombre de la categoría sea único (case-insensitive).
+     * Verifica tanto categorías activas como en papelera.
+     *
+     * @param name      Nombre a validar
+     * @param excludeId ID de la categoría a excluir (para updates), null para creates
+     */
+    private void validateCategoryName(String name, Long excludeId) {
+        categoryRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
+            // Si es update y es la misma categoría, no hay conflicto
+            if (excludeId != null && existing.getId().equals(excludeId)) {
+                return;
+            }
+
+            if (existing.isDeleted()) {
+                throw new IllegalArgumentException(
+                        "Ya existe una categoría con el nombre '" + name + "' en la papelera. " +
+                        "Puedes restaurarla o eliminarla permanentemente antes de crear una nueva.");
+            } else {
+                throw new IllegalArgumentException("Ya existe una categoría con el nombre: " + name);
+            }
+        });
     }
 }

@@ -29,10 +29,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Contar productos activos por categoria
     long countByCategoryIdAndDeletedAtIsNull(Long categoryId);
 
-    // Verificar nombre duplicado
-    boolean existsByNameAndDeletedAtIsNull(String name);
-
-    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
+    // Validacion de nombre unico (case-insensitive)
+    Optional<Product> findByNameIgnoreCase(String name);
 
     // Productos eliminados (papelera)
     Page<Product> findByDeletedAtIsNotNull(Pageable pageable);

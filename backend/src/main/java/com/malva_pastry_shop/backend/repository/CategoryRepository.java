@@ -23,17 +23,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // Categorías eliminadas (papelera)
     Page<Category> findByDeletedAtIsNotNull(Pageable pageable);
 
-    // Verificar nombre duplicado (solo activas)
-    boolean existsByNameAndDeletedAtIsNull(String name);
-
-    boolean existsByNameAndIdNotAndDeletedAtIsNull(String name, Long id);
-
-    // Métodos legacy (para compatibilidad)
-    Page<Category> findByNameContainingIgnoreCase(String name, Pageable pageable);
-
-    Optional<Category> findByName(String name);
-
-    boolean existsByName(String name);
-
-    boolean existsByNameAndIdNot(String name, Long id);
+    // Validacion de nombre unico (case-insensitive)
+    Optional<Category> findByNameIgnoreCase(String name);
 }

@@ -54,9 +54,7 @@ public class IngredientService {
 
     @Transactional
     public Ingredient create(IngredientRequest request) {
-        if (ingredientRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
-            throw new IllegalArgumentException("Ya existe un ingrediente activo con el nombre: " + request.getName());
-        }
+        validateIngredientName(request.getName(), null);
 
         Ingredient ingredient = new Ingredient();
         ingredient.setName(request.getName());
@@ -70,10 +68,7 @@ public class IngredientService {
     @Transactional
     public Ingredient update(Long id, IngredientRequest request) {
         Ingredient ingredient = findById(id);
-
-        if (ingredientRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), id)) {
-            throw new IllegalArgumentException("Ya existe otro ingrediente activo con el nombre: " + request.getName());
-        }
+        validateIngredientName(request.getName(), id);
 
         ingredient.setName(request.getName());
         ingredient.setDescription(request.getDescription());
@@ -109,10 +104,12 @@ public class IngredientService {
             throw new IllegalStateException("El ingrediente no esta eliminado");
         }
 
-        // Verificar que no exista otro ingrediente activo con el mismo nombre
-        if (ingredientRepository.existsByNameAndDeletedAtIsNull(ingredient.getName())) {
-            throw new IllegalStateException("Ya existe un ingrediente activo con el nombre: " + ingredient.getName());
-        }
+        // Verificar que no exista otro ingrediente activo con el mismo nombre (case-insensitive)
+        ingredientRepository.findByNameIgnoreCase(ingredient.getName()).ifPresent(existing -> {
+            if (!existing.getId().equals(id) && !existing.isDeleted()) {
+                throw new IllegalStateException("Ya existe un ingrediente activo con el nombre: " + ingredient.getName());
+            }
+        });
 
         ingredient.restore();
         return ingredientRepository.save(ingredient);
@@ -145,5 +142,31 @@ public class IngredientService {
 
     public long countProductsUsingIngredient(Long ingredientId) {
         return productIngredientRepository.countByIngredientId(ingredientId);
+    }
+
+    // ========== Validaciones ==========
+
+    /**
+     * Valida que el nombre del ingrediente sea único (case-insensitive).
+     * Verifica tanto ingredientes activos como en papelera.
+     *
+     * @param name      Nombre a validar
+     * @param excludeId ID del ingrediente a excluir (para updates), null para creates
+     */
+    private void validateIngredientName(String name, Long excludeId) {
+        ingredientRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
+            // Si es update y es el mismo ingrediente, no hay conflicto
+            if (excludeId != null && existing.getId().equals(excludeId)) {
+                return;
+            }
+
+            if (existing.isDeleted()) {
+                throw new IllegalArgumentException(
+                        "Ya existe un ingrediente con el nombre '" + name + "' en la papelera. " +
+                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
+            } else {
+                throw new IllegalArgumentException("Ya existe un ingrediente con el nombre: " + name);
+            }
+        });
     }
 }

@@ -51,9 +51,7 @@ public class ProductService {
 
     @Transactional
     public Product create(ProductRequest request, User createdBy) {
-        if (productRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
-            throw new IllegalArgumentException("Ya existe un producto activo con el nombre: " + request.getName());
-        }
+        validateProductName(request.getName(), null);
 
         Product product = new Product();
         product.setName(request.getName());
@@ -74,10 +72,7 @@ public class ProductService {
     @Transactional
     public Product update(Long id, ProductRequest request) {
         Product product = findById(id);
-
-        if (productRepository.existsByNameAndIdNotAndDeletedAtIsNull(request.getName(), id)) {
-            throw new IllegalArgumentException("Ya existe otro producto activo con el nombre: " + request.getName());
-        }
+        validateProductName(request.getName(), id);
 
         product.setName(request.getName());
         product.setDescription(request.getDescription());
@@ -113,6 +108,13 @@ public class ProductService {
             throw new IllegalStateException("El producto no está eliminado");
         }
 
+        // Verificar que no exista otro producto activo con el mismo nombre (case-insensitive)
+        productRepository.findByNameIgnoreCase(product.getName()).ifPresent(existing -> {
+            if (!existing.getId().equals(id) && !existing.isDeleted()) {
+                throw new IllegalStateException("Ya existe un producto activo con el nombre: " + product.getName());
+            }
+        });
+
         product.restore();
         return productRepository.save(product);
     }
@@ -130,5 +132,31 @@ public class ProductService {
         }
 
         productRepository.delete(product);
+    }
+
+    // ========== Validaciones ==========
+
+    /**
+     * Valida que el nombre del producto sea único (case-insensitive).
+     * Verifica tanto productos activos como en papelera.
+     *
+     * @param name      Nombre a validar
+     * @param excludeId ID del producto a excluir (para updates), null para creates
+     */
+    private void validateProductName(String name, Long excludeId) {
+        productRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
+            // Si es update y es el mismo producto, no hay conflicto
+            if (excludeId != null && existing.getId().equals(excludeId)) {
+                return;
+            }
+
+            if (existing.isDeleted()) {
+                throw new IllegalArgumentException(
+                        "Ya existe un producto con el nombre '" + name + "' en la papelera. " +
+                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
+            } else {
+                throw new IllegalArgumentException("Ya existe un producto con el nombre: " + name);
+            }
+        });
     }
 }
