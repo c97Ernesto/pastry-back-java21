@@ -1,4 +1,4 @@
-package com.malva_pastry_shop.backend.service;
+package com.malva_pastry_shop.backend.service.storefront;
 
 import java.util.List;
 

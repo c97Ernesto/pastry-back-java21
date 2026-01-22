@@ -14,8 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.malva_pastry_shop.backend.domain.storefront.Product;
 import com.malva_pastry_shop.backend.dto.request.ProductRequest;
-import com.malva_pastry_shop.backend.service.CategoryService;
-import com.malva_pastry_shop.backend.service.ProductService;
+import com.malva_pastry_shop.backend.service.storefront.CategoryService;
+import com.malva_pastry_shop.backend.service.storefront.ProductService;
 import com.malva_pastry_shop.backend.domain.auth.User;
 
 import jakarta.persistence.EntityNotFoundException;

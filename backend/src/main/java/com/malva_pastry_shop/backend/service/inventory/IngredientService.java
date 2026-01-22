@@ -1,4 +1,4 @@
-package com.malva_pastry_shop.backend.service;
+package com.malva_pastry_shop.backend.service.inventory;
 
 import java.util.List;
 
@@ -104,10 +104,12 @@ public class IngredientService {
             throw new IllegalStateException("El ingrediente no esta eliminado");
         }
 
-        // Verificar que no exista otro ingrediente activo con el mismo nombre (case-insensitive)
+        // Verificar que no exista otro ingrediente activo con el mismo nombre
+        // (case-insensitive)
         ingredientRepository.findByNameIgnoreCase(ingredient.getName()).ifPresent(existing -> {
             if (!existing.getId().equals(id) && !existing.isDeleted()) {
-                throw new IllegalStateException("Ya existe un ingrediente activo con el nombre: " + ingredient.getName());
+                throw new IllegalStateException(
+                        "Ya existe un ingrediente activo con el nombre: " + ingredient.getName());
             }
         });
 
@@ -132,7 +134,8 @@ public class IngredientService {
         long usageCount = productIngredientRepository.countByIngredientId(id);
         if (usageCount > 0) {
             throw new IllegalStateException(
-                    "No se puede eliminar permanentemente el ingrediente porque esta asociado a " + usageCount + " producto(s)");
+                    "No se puede eliminar permanentemente el ingrediente porque esta asociado a " + usageCount
+                            + " producto(s)");
         }
 
         ingredientRepository.delete(ingredient);
@@ -151,7 +154,8 @@ public class IngredientService {
      * Verifica tanto ingredientes activos como en papelera.
      *
      * @param name      Nombre a validar
-     * @param excludeId ID del ingrediente a excluir (para updates), null para creates
+     * @param excludeId ID del ingrediente a excluir (para updates), null para
+     *                  creates
      */
     private void validateIngredientName(String name, Long excludeId) {
         ingredientRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
@@ -163,7 +167,7 @@ public class IngredientService {
             if (existing.isDeleted()) {
                 throw new IllegalArgumentException(
                         "Ya existe un ingrediente con el nombre '" + name + "' en la papelera. " +
-                        "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
+                                "Puedes restaurarlo o eliminarlo permanentemente antes de crear uno nuevo.");
             } else {
                 throw new IllegalArgumentException("Ya existe un ingrediente con el nombre: " + name);
             }

@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.dto.request.TagRequest;
-import com.malva_pastry_shop.backend.service.TagService;
+import com.malva_pastry_shop.backend.service.storefront.TagService;
 
 import jakarta.validation.Valid;
 
