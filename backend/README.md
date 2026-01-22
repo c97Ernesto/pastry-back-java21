@@ -13,13 +13,13 @@ Sistema backend para la gestión de una pastelería artesanal. Este proyecto es 
 
 ### Cambios Principales en la Refactorización
 
-| Aspecto | Versión Anterior | Versión Actual |
-|---------|------------------|----------------|
-| **Java** | 17 | **21** (LTS) |
-| **Spring Boot** | 3.x | **4.0.1** |
-| **Spring Security** | 6.x | **7.x** |
-| **Hibernate** | 6.x | **7.2** |
-| **Jakarta EE** | 9 | **11** |
+| Aspecto             | Versión Anterior | Versión Actual |
+| ------------------- | ---------------- | -------------- |
+| **Java**            | 17               | **21** (LTS)   |
+| **Spring Boot**     | 3.x              | **4.0.1**      |
+| **Spring Security** | 6.x              | **7.x**        |
+| **Hibernate**       | 6.x              | **7.2**        |
+| **Jakarta EE**      | 9                | **11**         |
 
 ### Mejoras Implementadas
 
@@ -125,33 +125,104 @@ spring.datasource.password=tu_password
 
 ---
 
+## Documentación
+
+📚 **Documentación Completa del Sistema:**
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Arquitectura del sistema, patrones de diseño, DDD
+- **[DATABASE.md](DATABASE.md)** - Esquema de base de datos, relaciones, constraints
+
+---
+
 ## Estructura del Proyecto
 
 ```
 src/main/java/com/malva_pastry_shop/backend/
-├── config/                 # Configuración (Security, Seeder)
-├── controller/
-│   ├── admin/              # Controladores MVC (Thymeleaf)
-│   └── api/                # Controladores REST (API Pública)
-├── domain/
-│   ├── auth/               # Entidades de autenticación
-│   ├── product/            # Entidades de productos
-│   └── common/             # Entidades base
-├── dto/
-│   ├── request/            # DTOs de entrada
-│   └── response/           # DTOs de salida
-├── repository/             # Repositorios JPA
-├── service/                # Lógica de negocio
-└── security/               # Componentes de seguridad
-
-src/main/resources/
-├── static/css/             # Estilos CSS
-├── templates/
-│   ├── layout/             # Layouts Thymeleaf
-│   ├── auth/               # Vistas de autenticación
-│   └── dashboard/          # Vistas del panel
-└── application.properties  # Configuración
+├── config/                     # Configuración
+│   ├── SecurityConfig.java     # Spring Security 7
+│   └── DataSeeder.java         # Datos iniciales
+│
+├── controller/                 # Capa de Presentación
+│   ├── admin/                  # Controladores MVC (Thymeleaf)
+│   │   ├── ProductController
+│   │   ├── CategoryController
+│   │   ├── TagController
+│   │   ├── IngredientController
+│   │   └── UserController
+│   └── api/                    # Controladores REST (Futuro React)
+│       └── README.md           # Diseño de API planificado
+│
+├── domain/                     # Capa de Dominio (DDD)
+│   ├── storefront/             # Contexto Público
+│   │   ├── Product.java        # Productos del catálogo
+│   │   ├── Category.java       # Categorías
+│   │   ├── Tag.java            # Etiquetas (con slug)
+│   │   └── ProductTag.java     # M2M Product-Tag
+│   ├── inventory/              # Contexto Interno
+│   │   ├── Ingredient.java     # Ingredientes
+│   │   ├── ProductIngredient   # Recetas
+│   │   └── UnitOfMeasure.java  # Unidades de medida
+│   ├── auth/                   # Contexto de Autenticación
+│   │   ├── User.java
+│   │   └── Role.java
+│   └── common/                 # Entidades Base
+│       ├── TimestampedEntity
+│       └── SoftDeletableEntity
+│
+├── dto/                        # DTOs (Data Transfer Objects)
+│   ├── request/                # Entrada (compartidos)
+│   │   ├── ProductRequest
+│   │   ├── CategoryRequest
+│   │   └── TagRequest
+│   └── response/               # Salida
+│       ├── public/             # Para API REST pública
+│       │   ├── ProductPublicDTO
+│       │   ├── CategoryPublicDTO
+│       │   └── TagPublicDTO
+│       └── admin/              # Para reportes internos (futuro)
+│
+├── repository/                 # Capa de Acceso a Datos
+│   ├── ProductRepository
+│   ├── CategoryRepository
+│   ├── TagRepository
+│   └── IngredientRepository
+│
+├── service/                    # Capa de Lógica de Negocio
+│   ├── storefront/             # Servicios de catálogo público
+│   │   ├── ProductService
+│   │   ├── CategoryService
+│   │   └── TagService
+│   ├── inventory/              # Servicios internos
+│   │   └── IngredientService
+│   └── UserService
+│
+└── util/                       # Utilidades
+    └── SlugUtil.java           # Generación de slugs SEO
 ```
+
+### Bounded Contexts (DDD)
+
+El sistema organiza entidades en contextos delimitados:
+
+- **Storefront** (`domain/storefront/`): Catálogo público (Product, Category, Tag)
+- **Inventory** (`domain/inventory/`): Operaciones internas (Ingredient, recipes)
+- **Auth** (`domain/auth/`): Autenticación y autorización (User, Role)
+
+---
+
+## Características Principales
+
+### ✅ Implementadas
+
+- ✅ Panel de administración completo (SSR con Thymeleaf)
+- ✅ CRUD de Productos, Categorías, Tags, Ingredientes
+- ✅ Sistema de etiquetas con slugs
+- ✅ Soft-delete con capacidad de restauración
+- ✅ Gestión de recetas (Product-Ingredient)
+- ✅ Autenticación basada en roles (ADMIN, EMPLOYEE)
+- ✅ Arquitectura DDD con separación de contextos
+- ✅ Entidades base con timestamps y auditoría
+
 
 ---
 
@@ -168,13 +239,3 @@ src/main/resources/
 - Endpoints públicos y protegidos
 
 ---
-
-## Testing
-
-```bash
-# Ejecutar tests
-.\mvnw.cmd test
-
-# Ejecutar con cobertura
-.\mvnw.cmd test jacoco:report
-```
