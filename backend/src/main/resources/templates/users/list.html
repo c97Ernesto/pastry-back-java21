@@ -3,7 +3,7 @@
     xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout/main}">
 
 <head>
-    <title th:text="${pageTitle}">Ingredientes</title>
+    <title th:text="${pageTitle}">Usuarios</title>
 </head>
 
 <body>
@@ -31,9 +31,9 @@
 
         <!-- Header Actions -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <form th:action="@{/ingredients}" method="get" class="flex-1 max-w-md">
+            <form th:action="@{/users}" method="get" class="flex-1 max-w-md">
                 <div class="relative">
-                    <input type="text" name="search" th:value="${search}" placeholder="Buscar ingredientes..."
+                    <input type="text" name="search" th:value="${search}" placeholder="Buscar usuarios..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
                     <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -43,62 +43,71 @@
                 </div>
             </form>
             <div class="flex items-center gap-2">
-                <a th:href="@{/ingredients/deleted}" sec:authorize="hasAnyRole('ADMIN', 'SYSTEM_ADMIN')"
-                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span class="hidden sm:inline">Papelera</span>
-                </a>
-                <a th:href="@{/ingredients/new}"
+                <a th:href="@{/users/new}"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Nuevo Ingrediente
+                    Nuevo Usuario
                 </a>
             </div>
         </div>
 
-        <!-- Ingredients Table -->
+        <!-- Users Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Nombre</th>
+                                Usuario</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Descripcion</th>
+                                Email</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Costo Unitario</th>
+                                Rol</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Unidad</th>
+                                Estado</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr th:each="ingredient : ${ingredients.content}" class="hover:bg-gray-50">
+                        <tr th:each="user : ${users.content}" class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900" th:text="${ingredient.name}"></div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-500 max-w-xs truncate"
-                                    th:text="${ingredient.description ?: '-'}"></div>
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                        <span class="text-primary-600 font-semibold"
+                                            th:text="${#strings.substring(user.name, 0, 1).toUpperCase()}">U</span>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-medium text-gray-900" th:text="${user.fullName}"></div>
+                                        <div th:if="${user.systemAdmin}" class="text-xs text-amber-600 font-medium">
+                                            System Admin</div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900"
-                                    th:text="'$' + ${#numbers.formatDecimal(ingredient.unitCost, 1, 2)}"></div>
+                                <div class="text-sm text-gray-600" th:text="${user.email}"></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
-                                    th:text="${ingredient.unitOfMeasure.displayName}"></span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                    th:classappend="${user.role.name.name() == 'ADMIN'} ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'"
+                                    th:text="${user.role.name.name()}">Rol</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${user.enabled}"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Activo
+                                </span>
+                                <span th:if="${!user.enabled}"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Inactivo
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a th:href="@{/ingredients/{id}(id=${ingredient.id})}"
+                                    <a th:href="@{/users/{id}(id=${user.id})}"
                                         class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
                                         title="Ver">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,18 +120,18 @@
                                 </div>
                             </td>
                         </tr>
-                        <!-- Empty ingredients -->
-                        <tr th:if="${ingredients.content.empty}">
+                        <!-- Empty State -->
+                        <tr th:if="${users.content.empty}">
                             <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
-                                <p class="mt-2">No hay ingredientes registrados</p>
-                                <a th:href="@{/ingredients/new}"
+                                <p class="mt-2">No hay usuarios registrados</p>
+                                <a th:href="@{/users/new}"
                                     class="mt-2 inline-block text-primary-600 hover:text-primary-800">
-                                    Crear ingrediente
+                                    Crear usuario
                                 </a>
                             </td>
                         </tr>
@@ -131,32 +140,32 @@
             </div>
 
             <!-- Pagination -->
-            <div th:if="${!ingredients.content.empty}" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div th:if="${!users.content.empty}" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <!-- Info -->
                     <div class="text-sm text-gray-500">
                         Mostrando
-                        <span class="font-medium" th:text="${ingredients.number * ingredients.size + 1}"></span>
+                        <span class="font-medium" th:text="${users.number * users.size + 1}"></span>
                         -
                         <span class="font-medium"
-                            th:text="${ingredients.number * ingredients.size + ingredients.numberOfElements}"></span>
+                            th:text="${users.number * users.size + users.numberOfElements}"></span>
                         de
-                        <span class="font-medium" th:text="${ingredients.totalElements}"></span>
-                        ingredientes
+                        <span class="font-medium" th:text="${users.totalElements}"></span>
+                        usuarios
                     </div>
 
                     <!-- Navigation -->
-                    <nav th:if="${ingredients.totalPages > 1}" class="flex items-center gap-1">
+                    <nav th:if="${users.totalPages > 1}" class="flex items-center gap-1">
                         <!-- Previous -->
-                        <a th:if="${ingredients.hasPrevious()}"
-                            th:href="@{/ingredients(page=${ingredients.number - 1}, size=${ingredients.size}, search=${search})}"
+                        <a th:if="${users.hasPrevious()}"
+                            th:href="@{/users(page=${users.number - 1}, size=${users.size}, search=${search})}"
                             class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 19l-7-7 7-7" />
                             </svg>
                         </a>
-                        <span th:if="${!ingredients.hasPrevious()}"
+                        <span th:if="${!users.hasPrevious()}"
                             class="px-3 py-2 text-sm text-gray-300 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -165,25 +174,24 @@
                         </span>
 
                         <!-- Page Numbers -->
-                        <th:block th:each="i : ${#numbers.sequence(0, ingredients.totalPages - 1)}">
-                            <a th:if="${i != ingredients.number}"
-                                th:href="@{/ingredients(page=${i}, size=${ingredients.size}, search=${search})}"
-                                th:text="${i + 1}"
+                        <th:block th:each="i : ${#numbers.sequence(0, users.totalPages - 1)}">
+                            <a th:if="${i != users.number}"
+                                th:href="@{/users(page=${i}, size=${users.size}, search=${search})}" th:text="${i + 1}"
                                 class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"></a>
-                            <span th:if="${i == ingredients.number}" th:text="${i + 1}"
+                            <span th:if="${i == users.number}" th:text="${i + 1}"
                                 class="px-3 py-2 text-sm text-white bg-primary-600 border border-primary-600 rounded-lg"></span>
                         </th:block>
 
                         <!-- Next -->
-                        <a th:if="${ingredients.hasNext()}"
-                            th:href="@{/ingredients(page=${ingredients.number + 1}, size=${ingredients.size}, search=${search})}"
+                        <a th:if="${users.hasNext()}"
+                            th:href="@{/users(page=${users.number + 1}, size=${users.size}, search=${search})}"
                             class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
-                        <span th:if="${!ingredients.hasNext()}"
+                        <span th:if="${!users.hasNext()}"
                             class="px-3 py-2 text-sm text-gray-300 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
