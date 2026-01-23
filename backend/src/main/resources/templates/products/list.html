@@ -119,6 +119,8 @@
                                 Categoría</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Precio</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tags</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actualización</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -162,6 +164,18 @@
                                 <span th:if="${product.basePrice == null}" class="text-sm text-gray-400 italic">Sin
                                     precio</span>
                             </td>
+                            <!-- Tags -->
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <a th:href="@{/products/{id}/tags(id=${product.id})}"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                                    title="Ver tags">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                    Ver
+                                </a>
+                            </td>
                             <!-- Updated At -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div th:if="${product.updatedAt != null}" class="flex items-center gap-1">
@@ -195,7 +209,7 @@
 
                         <!-- Empty State -->
                         <tr th:if="${products.content.empty}">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

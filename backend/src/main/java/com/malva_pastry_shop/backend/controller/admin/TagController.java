@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.dto.request.TagRequest;
+import com.malva_pastry_shop.backend.service.storefront.ProductService;
 import com.malva_pastry_shop.backend.service.storefront.TagService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -30,9 +31,11 @@ import jakarta.validation.Valid;
 public class TagController {
 
     private final TagService tagService;
+    private final ProductService productService;
 
-    public TagController(TagService tagService) {
+    public TagController(TagService tagService, ProductService productService) {
         this.tagService = tagService;
+        this.productService = productService;
     }
 
     // ========== Listados ==========
@@ -79,7 +82,7 @@ public class TagController {
         try {
             Tag tag = tagService.findById(id);
             model.addAttribute("tag", tag);
-            model.addAttribute("usageCount", 0L); // TODO: implementar conteo cuando exista ProductTagRepository
+            model.addAttribute("usageCount", productService.countProductsByTag(id));
             model.addAttribute("pageTitle", tag.getName());
             return "tags/show";
         } catch (EntityNotFoundException e) {
@@ -204,5 +207,51 @@ public class TagController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/tags/deleted";
+    }
+
+    // ========== Gestión de Productos por Tag ==========
+
+    @GetMapping("/{id}/products")
+    public String listProducts(@PathVariable Long id, Model model) {
+        try {
+            Tag tag = tagService.findById(id);
+            model.addAttribute("tag", tag);
+            model.addAttribute("products", productService.getProductsByTag(id));
+            model.addAttribute("availableProducts", productService.getAvailableProductsForTag(id));
+            model.addAttribute("pageTitle", "Productos con tag: " + tag.getName());
+            return "tags/products";
+        } catch (EntityNotFoundException e) {
+            return "redirect:/tags";
+        }
+    }
+
+    @PostMapping("/{id}/products/{productId}")
+    public String addProduct(
+            @PathVariable Long id,
+            @PathVariable Long productId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productService.addProductToTag(id, productId);
+            redirectAttributes.addFlashAttribute("success", "Producto agregado al tag");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/tags/" + id + "/products";
+    }
+
+    @PostMapping("/{id}/products/{productId}/remove")
+    public String removeProduct(
+            @PathVariable Long id,
+            @PathVariable Long productId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productService.removeProductFromTag(id, productId);
+            redirectAttributes.addFlashAttribute("success", "Producto removido del tag");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/tags/" + id + "/products";
     }
 }
