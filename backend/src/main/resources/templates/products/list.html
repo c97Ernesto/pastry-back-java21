@@ -119,8 +119,6 @@
                                 Categoría</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Precio</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tags</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actualización</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -164,18 +162,6 @@
                                 <span th:if="${product.basePrice == null}" class="text-sm text-gray-400 italic">Sin
                                     precio</span>
                             </td>
-                            <!-- Tags -->
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <a th:href="@{/products/{id}/tags(id=${product.id})}"
-                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
-                                    title="Ver tags">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                    Ver
-                                </a>
-                            </td>
                             <!-- Updated At -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div th:if="${product.updatedAt != null}" class="flex items-center gap-1">
@@ -192,15 +178,33 @@
                             <!-- Actions -->
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1">
-                                    <!-- View -->
+                                    <!-- View Product -->
                                     <a th:href="@{/products/{id}(id=${product.id})}"
                                         class="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                        title="Ver detalles">
+                                        title="Ver producto">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                    <!-- View Recipe -->
+                                    <a th:href="@{/products/{id}/recipe(id=${product.id})}"
+                                        class="p-2 text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                        title="Ver receta">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                        </svg>
+                                    </a>
+                                    <!-- Manage Tags -->
+                                    <a th:href="@{/products/{id}/tags(id=${product.id})}"
+                                        class="p-2 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                        title="Gestionar tags">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                         </svg>
                                     </a>
                                 </div>
@@ -209,7 +213,7 @@
 
                         <!-- Empty State -->
                         <tr th:if="${products.content.empty}">
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

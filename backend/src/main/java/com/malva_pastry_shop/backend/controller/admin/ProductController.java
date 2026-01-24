@@ -1,5 +1,7 @@
 package com.malva_pastry_shop.backend.controller.admin;
 
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -266,5 +268,70 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/products/" + id + "/tags";
+    }
+
+    // ========== Gestión de Recetas (Ingredientes) ==========
+
+    @GetMapping("/{id}/recipe")
+    public String showRecipe(@PathVariable Long id, Model model) {
+        try {
+            Product product = productService.findById(id);
+            model.addAttribute("product", product);
+            model.addAttribute("ingredients", productService.getProductIngredients(id));
+            model.addAttribute("availableIngredients", productService.getAvailableIngredientsForProduct(id));
+            model.addAttribute("recipeCost", productService.calculateRecipeCost(id));
+            model.addAttribute("pageTitle", "Receta: " + product.getName());
+            return "products/recipe";
+        } catch (EntityNotFoundException e) {
+            return "redirect:/products";
+        }
+    }
+
+    @PostMapping("/{id}/recipe/ingredients/{ingredientId}")
+    public String addIngredient(
+            @PathVariable Long id,
+            @PathVariable Long ingredientId,
+            @RequestParam BigDecimal quantity,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productService.addIngredientToProduct(id, ingredientId, quantity);
+            redirectAttributes.addFlashAttribute("success", "Ingrediente agregado a la receta");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/products/" + id + "/recipe";
+    }
+
+    @PostMapping("/{id}/recipe/ingredients/{ingredientId}/remove")
+    public String removeIngredient(
+            @PathVariable Long id,
+            @PathVariable Long ingredientId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productService.removeIngredientFromProduct(id, ingredientId);
+            redirectAttributes.addFlashAttribute("success", "Ingrediente removido de la receta");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/products/" + id + "/recipe";
+    }
+
+    @PostMapping("/{id}/recipe/ingredients/{ingredientId}/update")
+    public String updateIngredientQuantity(
+            @PathVariable Long id,
+            @PathVariable Long ingredientId,
+            @RequestParam BigDecimal quantity,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productService.updateIngredientQuantity(id, ingredientId, quantity);
+            redirectAttributes.addFlashAttribute("success", "Cantidad actualizada");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/products/" + id + "/recipe";
     }
 }

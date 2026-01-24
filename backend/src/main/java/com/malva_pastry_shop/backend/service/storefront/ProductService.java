@@ -10,18 +10,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.malva_pastry_shop.backend.domain.auth.User;
+import com.malva_pastry_shop.backend.domain.inventory.Ingredient;
+import com.malva_pastry_shop.backend.domain.inventory.ProductIngredient;
 import com.malva_pastry_shop.backend.domain.storefront.Category;
 import com.malva_pastry_shop.backend.domain.storefront.Product;
 import com.malva_pastry_shop.backend.domain.storefront.ProductTag;
 import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.dto.request.ProductRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
+import com.malva_pastry_shop.backend.repository.IngredientRepository;
+import com.malva_pastry_shop.backend.repository.ProductIngredientRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
 import com.malva_pastry_shop.backend.repository.ProductTagRepository;
 import com.malva_pastry_shop.backend.repository.TagRepository;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductService {
@@ -30,15 +36,21 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final ProductTagRepository productTagRepository;
+    private final IngredientRepository ingredientRepository;
+    private final ProductIngredientRepository productIngredientRepository;
 
     public ProductService(ProductRepository productRepository,
             CategoryRepository categoryRepository,
             TagRepository tagRepository,
-            ProductTagRepository productTagRepository) {
+            ProductTagRepository productTagRepository,
+            IngredientRepository ingredientRepository,
+            ProductIngredientRepository productIngredientRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
         this.productTagRepository = productTagRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.productIngredientRepository = productIngredientRepository;
     }
 
     // ========== Consultas ==========
@@ -172,10 +184,15 @@ public class ProductService {
 
     /**
      * Obtiene los tags activos de un producto.
+     * Usa el repositorio directamente para evitar problemas de lazy loading.
      */
+    @Transactional(readOnly = true)
     public List<Tag> getProductTags(Long productId) {
-        Product product = findById(productId);
-        return product.getProductTags().stream()
+        // Verificar que el producto existe
+        findById(productId);
+
+        // Usar el repositorio directamente para evitar lazy loading
+        return productTagRepository.findByProductId(productId).stream()
                 .map(ProductTag::getTag)
                 .filter(tag -> !tag.isDeleted())
                 .sorted(Comparator.comparing(Tag::getName))
@@ -185,10 +202,13 @@ public class ProductService {
     /**
      * Obtiene tags activos que NO están asociados a un producto.
      */
+    @Transactional(readOnly = true)
     public List<Tag> getAvailableTagsForProduct(Long productId) {
-        Product product = findById(productId);
+        // Verificar que el producto existe
+        findById(productId);
 
-        Set<Long> currentTagIds = product.getProductTags().stream()
+        // Obtener IDs de tags ya asociados
+        Set<Long> currentTagIds = productTagRepository.findByProductId(productId).stream()
                 .map(pt -> pt.getTag().getId())
                 .collect(Collectors.toSet());
 
@@ -206,16 +226,13 @@ public class ProductService {
         Tag tag = tagRepository.findByIdAndDeletedAtIsNull(tagId)
                 .orElseThrow(() -> new EntityNotFoundException("Tag no encontrado"));
 
-        boolean alreadyHasTag = product.getProductTags().stream()
-                .anyMatch(pt -> pt.getTag().getId().equals(tagId));
-
-        if (alreadyHasTag) {
+        // Verificar si ya existe usando el repositorio (query optimizada)
+        if (productTagRepository.existsByProductIdAndTagId(productId, tagId)) {
             throw new IllegalStateException("El producto ya tiene este tag");
         }
 
         ProductTag productTag = new ProductTag(product, tag);
-        product.getProductTags().add(productTag);
-        productRepository.save(product);
+        productTagRepository.save(productTag);
     }
 
     /**
@@ -223,15 +240,13 @@ public class ProductService {
      */
     @Transactional
     public void removeTagFromProduct(Long productId, Long tagId) {
-        Product product = findById(productId);
+        // Verificar que el producto existe
+        findById(productId);
 
-        ProductTag productTag = product.getProductTags().stream()
-                .filter(pt -> pt.getTag().getId().equals(tagId))
-                .findFirst()
+        ProductTag productTag = productTagRepository.findByProductIdAndTagId(productId, tagId)
                 .orElseThrow(() -> new EntityNotFoundException("El producto no tiene este tag"));
 
-        product.getProductTags().remove(productTag);
-        productRepository.save(product);
+        productTagRepository.delete(productTag);
     }
 
     // ========== Consultas por Tag ==========
@@ -291,5 +306,107 @@ public class ProductService {
     @Transactional
     public void removeProductFromTag(Long tagId, Long productId) {
         removeTagFromProduct(productId, tagId);
+    }
+
+    // ========== Gestión de Recetas (Ingredientes del Producto) ==========
+
+    /**
+     * Obtiene los ingredientes activos de un producto (receta).
+     * Usa el repositorio directamente para evitar problemas de lazy loading.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductIngredient> getProductIngredients(Long productId) {
+        // Verificar que el producto existe
+        findById(productId);
+
+        // Usar el repositorio directamente para evitar lazy loading
+        return productIngredientRepository.findByProductId(productId).stream()
+                .filter(pi -> !pi.getIngredient().isDeleted())
+                .sorted(Comparator.comparing(pi -> pi.getIngredient().getName()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene ingredientes activos que NO están en la receta del producto.
+     */
+    @Transactional(readOnly = true)
+    public List<Ingredient> getAvailableIngredientsForProduct(Long productId) {
+        // Verificar que el producto existe
+        findById(productId);
+
+        // Obtener IDs de ingredientes ya en la receta
+        Set<Long> currentIngredientIds = productIngredientRepository.findByProductId(productId).stream()
+                .map(pi -> pi.getIngredient().getId())
+                .collect(Collectors.toSet());
+
+        return ingredientRepository.findByDeletedAtIsNullOrderByNameAsc().stream()
+                .filter(ingredient -> !currentIngredientIds.contains(ingredient.getId()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Agrega un ingrediente a la receta del producto.
+     */
+    @Transactional
+    public void addIngredientToProduct(Long productId, Long ingredientId, BigDecimal quantity) {
+        Product product = findById(productId);
+        Ingredient ingredient = ingredientRepository.findByIdAndDeletedAtIsNull(ingredientId)
+                .orElseThrow(() -> new EntityNotFoundException("Ingrediente no encontrado"));
+
+        // Verificar si ya existe usando el repositorio (query optimizada)
+        if (productIngredientRepository.existsByProductIdAndIngredientId(productId, ingredientId)) {
+            throw new IllegalStateException("El producto ya tiene este ingrediente en su receta");
+        }
+
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
+        }
+
+        ProductIngredient productIngredient = new ProductIngredient(product, ingredient, quantity);
+        productIngredientRepository.save(productIngredient);
+    }
+
+    /**
+     * Quita un ingrediente de la receta del producto.
+     */
+    @Transactional
+    public void removeIngredientFromProduct(Long productId, Long ingredientId) {
+        // Verificar que el producto existe
+        findById(productId);
+
+        ProductIngredient productIngredient = productIngredientRepository.findByProductIdAndIngredientId(productId, ingredientId)
+                .orElseThrow(() -> new EntityNotFoundException("El producto no tiene este ingrediente en su receta"));
+
+        productIngredientRepository.delete(productIngredient);
+    }
+
+    /**
+     * Actualiza la cantidad de un ingrediente en la receta del producto.
+     */
+    @Transactional
+    public void updateIngredientQuantity(Long productId, Long ingredientId, BigDecimal quantity) {
+        // Verificar que el producto existe
+        findById(productId);
+
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
+        }
+
+        ProductIngredient productIngredient = productIngredientRepository.findByProductIdAndIngredientId(productId, ingredientId)
+                .orElseThrow(() -> new EntityNotFoundException("El producto no tiene este ingrediente en su receta"));
+
+        productIngredient.setQuantity(quantity);
+        productIngredientRepository.save(productIngredient);
+    }
+
+    /**
+     * Calcula el costo total de los ingredientes de un producto.
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal calculateRecipeCost(Long productId) {
+        List<ProductIngredient> ingredients = getProductIngredients(productId);
+        return ingredients.stream()
+                .map(pi -> pi.getIngredient().getUnitCost().multiply(pi.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
