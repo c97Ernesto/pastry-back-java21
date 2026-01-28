@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title th:text="${pageTitle}">Nueva Venta</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a th:href="@{/sales}" class="text-gray-500 hover:text-primary-600">Ventas</a></li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-gray-700 font-medium">Nueva</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Form Card -->
+        <div class="max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div th:if="${error}" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <span th:text="${error}"></span>
+            </div>
+
+            <form th:action="@{/sales}" th:object="${sale}" method="post" class="space-y-6">
+                <div>
+                    <label for="productId" class="block text-sm font-medium text-gray-700 mb-1">
+                        Producto <span class="text-red-500">*</span>
+                    </label>
+                    <select id="productId" th:field="*{productId}"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                        th:classappend="${#fields.hasErrors('productId')} ? 'border-red-500' : ''">
+                        <option value="">Seleccionar producto...</option>
+                        <option th:each="product : ${products}"
+                                th:value="${product.id}"
+                                th:text="${product.name + (product.basePrice != null ? ' - $' + #numbers.formatDecimal(product.basePrice, 1, 2) : '')}"></option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('productId')}" class="mt-1 text-sm text-red-500" th:errors="*{productId}"></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">
+                            Cantidad <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="quantity" th:field="*{quantity}" min="1" step="1"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                            th:classappend="${#fields.hasErrors('quantity')} ? 'border-red-500' : ''"
+                            placeholder="1">
+                        <p th:if="${#fields.hasErrors('quantity')}" class="mt-1 text-sm text-red-500" th:errors="*{quantity}"></p>
+                    </div>
+
+                    <div>
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">
+                            Precio Unitario <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-gray-500">$</span>
+                            <input type="number" id="unitPrice" th:field="*{unitPrice}" step="0.01" min="0"
+                                class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                                th:classappend="${#fields.hasErrors('unitPrice')} ? 'border-red-500' : ''"
+                                placeholder="0.00">
+                        </div>
+                        <p th:if="${#fields.hasErrors('unitPrice')}" class="mt-1 text-sm text-red-500" th:errors="*{unitPrice}"></p>
+                    </div>
+                </div>
+
+                <!-- Total Preview -->
+                <div id="totalPreview" class="p-4 bg-gray-50 rounded-lg hidden">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Total de la venta:</span>
+                        <span id="totalAmount" class="text-xl font-bold text-green-600">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Datos del Cliente (Opcionales) -->
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4">Datos del Cliente (opcional)</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                            <input type="text" id="customerName" th:field="*{customerName}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                                th:classappend="${#fields.hasErrors('customerName')} ? 'border-red-500' : ''"
+                                placeholder="Nombre del cliente">
+                            <p th:if="${#fields.hasErrors('customerName')}" class="mt-1 text-sm text-red-500" th:errors="*{customerName}"></p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="customerDni" class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                                <input type="text" id="customerDni" th:field="*{customerDni}"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                                    th:classappend="${#fields.hasErrors('customerDni')} ? 'border-red-500' : ''"
+                                    placeholder="12345678">
+                                <p th:if="${#fields.hasErrors('customerDni')}" class="mt-1 text-sm text-red-500" th:errors="*{customerDni}"></p>
+                            </div>
+
+                            <div>
+                                <label for="customerPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                                <input type="text" id="customerPhone" th:field="*{customerPhone}"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                                    th:classappend="${#fields.hasErrors('customerPhone')} ? 'border-red-500' : ''"
+                                    placeholder="+51 999 999 999">
+                                <p th:if="${#fields.hasErrors('customerPhone')}" class="mt-1 text-sm text-red-500" th:errors="*{customerPhone}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+                    <textarea id="notes" th:field="*{notes}" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Notas adicionales sobre la venta..."></textarea>
+                    <p th:if="${#fields.hasErrors('notes')}" class="mt-1 text-sm text-red-500"
+                        th:errors="*{notes}"></p>
+                </div>
+
+                <div class="flex items-center gap-4 pt-4">
+                    <button type="submit"
+                        class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        Registrar Venta
+                    </button>
+                    <a th:href="@{/sales}"
+                        class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            // Auto-fill price from selected product and calculate total
+            document.getElementById('productId').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const text = selectedOption.text;
+                const priceMatch = text.match(/\$([0-9]+\.?[0-9]*)/);
+
+                if (priceMatch) {
+                    document.getElementById('unitPrice').value = priceMatch[1];
+                    calculateTotal();
+                }
+            });
+
+            // Calculate total on quantity or price change
+            function calculateTotal() {
+                const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+                const unitPrice = parseFloat(document.getElementById('unitPrice').value) || 0;
+                const total = quantity * unitPrice;
+
+                const preview = document.getElementById('totalPreview');
+                const totalAmount = document.getElementById('totalAmount');
+
+                if (quantity > 0 && unitPrice > 0) {
+                    preview.classList.remove('hidden');
+                    totalAmount.textContent = '$' + total.toFixed(2);
+                } else {
+                    preview.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('quantity').addEventListener('input', calculateTotal);
+            document.getElementById('unitPrice').addEventListener('input', calculateTotal);
+
+            // Calculate on load if values exist
+            calculateTotal();
+        </script>
+    </div>
+</body>
+
+</html>
