@@ -30,11 +30,12 @@
         </div>
 
         <!-- Header Actions -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <!-- Filters -->
-            <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+            <!-- Unified Filter Form -->
+            <form th:action="@{/sales}" method="get" class="flex flex-wrap items-end gap-3 flex-1">
                 <!-- Search by product -->
-                <form th:action="@{/sales}" method="get" class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Producto</label>
                     <div class="relative">
                         <input type="text" name="search" th:value="${search}" placeholder="Buscar por producto..."
                             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
@@ -44,28 +45,56 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                </form>
-                <!-- Date filter -->
-                <form th:action="@{/sales}" method="get" class="flex items-center gap-2">
+                </div>
+                <!-- Date range -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Desde</label>
                     <input type="date" name="startDate" th:value="${startDate}"
                         class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
-                    <span class="text-gray-500">-</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Hasta</label>
                     <input type="date" name="endDate" th:value="${endDate}"
                         class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <!-- Buttons -->
+                <div class="flex items-center gap-2">
                     <button type="submit"
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
                         Filtrar
                     </button>
-                </form>
-            </div>
+                    <a th:href="@{/sales}"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
             <!-- New Sale button -->
             <a th:href="@{/sales/new}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors whitespace-nowrap">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 Nueva Venta
             </a>
+        </div>
+
+        <!-- Sales Summary -->
+        <div th:if="${!sales.content.empty}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3">
+                <div class="text-2xl">🛒</div>
+                <div>
+                    <div class="text-xl font-bold text-gray-800" th:text="${sales.totalElements}">0</div>
+                    <div class="text-sm text-gray-500">Ventas encontradas</div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3">
+                <div class="text-2xl">💰</div>
+                <div>
+                    <div class="text-xl font-bold text-green-600" th:text="'S/ ' + ${#numbers.formatDecimal(totalSalesAmount, 1, 2)}">S/ 0.00</div>
+                    <div class="text-sm text-gray-500">Ingreso total del filtro</div>
+                </div>
+            </div>
         </div>
 
         <!-- Sales Table -->

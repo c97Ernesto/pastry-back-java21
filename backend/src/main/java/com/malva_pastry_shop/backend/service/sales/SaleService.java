@@ -174,6 +174,12 @@ public class SaleService {
         return saleRepository.save(sale);
     }
 
+    // ========== Filtros Combinados ==========
+
+    public Page<Sale> findByProductNameAndDateRange(String productName, LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        return saleRepository.findByProductNameAndDateRange(productName, start, end, pageable);
+    }
+
     // ========== Estadisticas ==========
 
     /**
@@ -181,5 +187,31 @@ public class SaleService {
      */
     public long countSalesByProduct(Long productId) {
         return saleRepository.countByProductId(productId);
+    }
+
+    public long countSalesInRange(LocalDateTime start, LocalDateTime end) {
+        return saleRepository.countBySaleDateBetween(start, end);
+    }
+
+    public BigDecimal totalRevenueInRange(LocalDateTime start, LocalDateTime end) {
+        return saleRepository.sumTotalAmountBySaleDateBetween(start, end);
+    }
+
+    // ========== Sumas para filtros ==========
+
+    public BigDecimal sumTotalAmount() {
+        return saleRepository.sumTotalAmount();
+    }
+
+    public BigDecimal sumTotalAmountByDateRange(LocalDateTime start, LocalDateTime end) {
+        return saleRepository.sumTotalAmountByDateRange(start, end);
+    }
+
+    public BigDecimal sumTotalAmountByProductName(String productName) {
+        return saleRepository.sumTotalAmountByProductNameContaining(productName);
+    }
+
+    public BigDecimal sumTotalAmountByProductNameAndDateRange(String productName, LocalDateTime start, LocalDateTime end) {
+        return saleRepository.sumTotalAmountByProductNameAndDateRange(productName, start, end);
     }
 }
