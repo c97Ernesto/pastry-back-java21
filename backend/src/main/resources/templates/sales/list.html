@@ -112,11 +112,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900"
-                                    th:text="'$' + ${#numbers.formatDecimal(sale.unitPrice, 1, 2)}"></div>
+                                    th:text="'' + ${#numbers.formatDecimal(sale.unitPrice, 1, 2)}"></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-semibold text-green-600"
-                                    th:text="'$' + ${#numbers.formatDecimal(sale.totalAmount, 1, 2)}"></div>
+                                    th:text="'' + ${#numbers.formatDecimal(sale.totalAmount, 1, 2)}"></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">

@@ -54,7 +54,7 @@ public class SaleIngredient extends TimestampedEntity {
      */
     @NotNull(message = "La cantidad usada es requerida")
     @DecimalMin(value = "0.0", inclusive = false, message = "La cantidad usada debe ser mayor a 0")
-    @Digits(integer = 14, fraction = 4, message = "La cantidad usada debe tener maximo 14 digitos enteros y 4 decimales")
+    @Digits(integer = 10, fraction = 4, message = "La cantidad usada debe tener maximo 10 digitos enteros y 4 decimales")
     @Column(name = "quantity_used", nullable = false, precision = 14, scale = 4)
     private BigDecimal quantityUsed;
 
@@ -64,7 +64,7 @@ public class SaleIngredient extends TimestampedEntity {
     @NotNull(message = "El costo unitario es requerido")
     @DecimalMin(value = "0.0", inclusive = true, message = "El costo unitario debe ser mayor o igual a 0")
     @Digits(integer = 10, fraction = 2, message = "El costo unitario debe tener maximo 10 digitos enteros y 2 decimales")
-    @Column(name = "unit_cost", nullable = false, precision = 10, scale = 2)
+    @Column(name = "unit_cost", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitCost;
 
     /**
@@ -80,8 +80,8 @@ public class SaleIngredient extends TimestampedEntity {
      */
     @NotNull(message = "El costo total es requerido")
     @DecimalMin(value = "0.0", inclusive = true, message = "El costo total debe ser mayor o igual a 0")
-    @Digits(integer = 14, fraction = 4, message = "El costo total debe tener maximo 14 digitos enteros y 4 decimales")
-    @Column(name = "total_cost", nullable = false, precision = 14, scale = 4)
+    @Digits(integer = 10, fraction = 2, message = "El costo total debe tener maximo 10 digitos enteros y 2 decimales")
+    @Column(name = "total_cost", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalCost;
 
     // ==================== CONSTRUCTORES ====================

@@ -53,7 +53,7 @@ public class Product extends SoftDeletableEntity {
      */
     @DecimalMin(value = "0.0", inclusive = true, message = "El precio base debe ser mayor o igual a 0")
     @Digits(integer = 10, fraction = 2, message = "El precio base debe tener maximo 10 digitos enteros y 2 decimales")
-    @Column(name = "base_price", precision = 10, scale = 2)
+    @Column(name = "base_price", precision = 12, scale = 2)
     private BigDecimal basePrice;
 
     /**

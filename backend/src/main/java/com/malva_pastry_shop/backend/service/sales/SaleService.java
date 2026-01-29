@@ -57,7 +57,8 @@ public class SaleService {
     }
 
     /**
-     * Obtiene una venta con todas sus relaciones inicializadas para la vista de detalle.
+     * Obtiene una venta con todas sus relaciones inicializadas para la vista de
+     * detalle.
      * Inicializa: registeredBy, saleIngredients
      */
     @Transactional(readOnly = true)
@@ -121,6 +122,14 @@ public class SaleService {
         // 5. Calcular totalAmount
         BigDecimal totalAmount = request.getUnitPrice()
                 .multiply(BigDecimal.valueOf(request.getQuantity()));
+
+        // Validar que totalAmount no exceda 10 dígitos enteros
+        if (totalAmount.precision() - totalAmount.scale() > 10) {
+            throw new IllegalArgumentException(
+                    "El monto total de la venta excede el límite permitido (máximo: 9,999,999,999.9999). " +
+                            "Reduce la cantidad o el precio unitario.");
+        }
+
         sale.setTotalAmount(totalAmount);
 
         // 3. Obtener ingredientes del producto (receta)
@@ -132,14 +141,31 @@ public class SaleService {
             BigDecimal quantityUsed = pi.getQuantity()
                     .multiply(BigDecimal.valueOf(request.getQuantity()));
 
+            // Validar que quantityUsed no exceda 10 dígitos enteros
+            if (quantityUsed.precision() - quantityUsed.scale() > 10) {
+                throw new IllegalArgumentException(
+                        "La cantidad del ingrediente '" + pi.getIngredient().getName() +
+                                "' excede el límite permitido. Reduce la cantidad de venta.");
+            }
+
+            BigDecimal unitCost = pi.getIngredient().getUnitCost();
+            BigDecimal totalCost = quantityUsed.multiply(unitCost);
+
+            // Validar que totalCost no exceda 10 dígitos enteros
+            if (totalCost.precision() - totalCost.scale() > 10) {
+                throw new IllegalArgumentException(
+                        "El costo total del ingrediente '" + pi.getIngredient().getName() +
+                                "' excede el límite permitido (máximo: 9,999,999,999.9999). " +
+                                "Reduce la cantidad de venta o el costo unitario del ingrediente.");
+            }
+
             SaleIngredient saleIngredient = new SaleIngredient(
                     sale,
                     pi.getIngredient(),
                     pi.getIngredient().getName(),
                     quantityUsed,
-                    pi.getIngredient().getUnitCost(),
-                    pi.getIngredient().getUnitOfMeasure().getDisplayName()
-            );
+                    unitCost,
+                    pi.getIngredient().getUnitOfMeasure().getDisplayName());
 
             sale.addSaleIngredient(saleIngredient);
         }

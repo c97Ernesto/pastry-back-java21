@@ -37,7 +37,7 @@ public class Ingredient extends SoftDeletableEntity {
     @NotNull(message = "El costo unitario es requerido")
     @DecimalMin(value = "0.0", inclusive = true, message = "El costo unitario debe ser mayor o igual a 0")
     @Digits(integer = 10, fraction = 2, message = "El costo unitario debe tener maximo 10 digitos enteros y 2 decimales")
-    @Column(name = "unit_cost", nullable = false, precision = 10, scale = 2)
+    @Column(name = "unit_cost", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitCost;
 
     @NotNull(message = "La unidad de medida es requerida")
