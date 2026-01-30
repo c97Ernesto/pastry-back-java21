@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title th:text="${pageTitle}">Detalle Venta</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a th:href="@{/sales}" class="text-gray-500 hover:text-primary-600">Ventas</a></li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-gray-700 font-medium" th:text="'#' + ${sale.id}">Venta</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}"
+            class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd" />
+            </svg>
+            <span th:text="${success}"></span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Sale Details Card -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900" th:text="${sale.productName}"></h2>
+                            <p class="mt-1 text-sm text-gray-500"
+                                th:text="'Registrada el ' + ${#temporals.format(sale.saleDate, 'dd/MM/yyyy')} + ' a las ' + ${#temporals.format(sale.saleDate, 'HH:mm')}">
+                            </p>
+                        </div>
+                        <span class="px-4 py-2 text-lg font-bold bg-green-100 text-green-800 rounded-full"
+                            th:text="'' + ${#numbers.formatDecimal(sale.totalAmount, 1, 2)}"></span>
+                    </div>
+
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 px-4 py-3 rounded-lg">
+                            <dt class="text-sm font-medium text-gray-500">Cantidad vendida</dt>
+                            <dd class="mt-1 text-lg font-semibold text-gray-900" th:text="${sale.quantity}"></dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 rounded-lg">
+                            <dt class="text-sm font-medium text-gray-500">Precio unitario</dt>
+                            <dd class="mt-1 text-lg font-semibold text-gray-900"
+                                th:text="'' + ${#numbers.formatDecimal(sale.unitPrice, 1, 2)}"></dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 rounded-lg">
+                            <dt class="text-sm font-medium text-gray-500">Registrada por</dt>
+                            <dd class="mt-1 text-lg font-semibold text-gray-900"
+                                th:text="${sale.registeredBy.fullName}"></dd>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 rounded-lg">
+                            <dt class="text-sm font-medium text-gray-500">Fecha de registro</dt>
+                            <dd class="mt-1 text-lg font-semibold text-gray-900"
+                                th:text="${#temporals.format(sale.insertedAt, 'dd/MM/yyyy HH:mm')}"></dd>
+                        </div>
+                    </dl>
+
+                    <!-- Datos del Cliente -->
+                    <div th:if="${sale.customerName != null || sale.customerDni != null || sale.customerPhone != null}"
+                        class="mt-6 border-t border-gray-200 pt-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">Datos del Cliente</h3>
+                        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div th:if="${sale.customerName}" class="bg-gray-50 px-4 py-3 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-500">Nombre</dt>
+                                <dd class="mt-1 text-sm font-semibold text-gray-900" th:text="${sale.customerName}"></dd>
+                            </div>
+                            <div th:if="${sale.customerDni}" class="bg-gray-50 px-4 py-3 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-500">DNI</dt>
+                                <dd class="mt-1 text-sm font-semibold text-gray-900" th:text="${sale.customerDni}"></dd>
+                            </div>
+                            <div th:if="${sale.customerPhone}" class="bg-gray-50 px-4 py-3 rounded-lg">
+                                <dt class="text-sm font-medium text-gray-500">Telefono</dt>
+                                <dd class="mt-1 text-sm font-semibold text-gray-900" th:text="${sale.customerPhone}"></dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div th:if="${sale.notes}" class="mt-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Notas</h3>
+                        <p class="text-gray-700 bg-gray-50 p-4 rounded-lg" th:text="${sale.notes}"></p>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center gap-3">
+                    <a th:href="@{/sales}"
+                        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        Volver a Ventas
+                    </a>
+                    <a th:href="@{/sales/new}"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Nueva Venta
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ingredients Snapshot Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Ingredientes Usados</h3>
+
+                    <div th:if="${ingredients.empty}" class="text-center py-8 text-gray-500">
+                        <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        <p class="mt-2 text-sm">Sin ingredientes registrados</p>
+                        <p class="text-xs text-gray-400">El producto no tenia receta al momento de la venta</p>
+                    </div>
+
+                    <div th:if="${!ingredients.empty}" class="space-y-3">
+                        <div th:each="ing : ${ingredients}"
+                            class="p-3 bg-gray-50 rounded-lg">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-900" th:text="${ing.ingredientName}"></p>
+                                    <p class="text-sm text-gray-500">
+                                        <span th:text="${#numbers.formatDecimal(ing.quantityUsed, 1, 4)}"></span>
+                                        <span th:text="${ing.unitOfMeasure}"></span>
+                                        <span class="text-gray-400">x</span>
+                                        <span th:text="'' + ${#numbers.formatDecimal(ing.unitCost, 1, 2)}"></span>
+                                    </p>
+                                </div>
+                                <span class="text-sm font-semibold text-gray-700"
+                                    th:text="'' + ${#numbers.formatDecimal(ing.totalCost, 1, 2)}"></span>
+                            </div>
+                        </div>
+
+                        <!-- Total Ingredient Cost -->
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-500">Costo total de ingredientes:</span>
+                                <span class="text-lg font-bold text-gray-900"
+                                    th:text="'' + ${#numbers.formatDecimal(totalIngredientCost, 1, 2)}"></span>
+                            </div>
+                        </div>
+
+                        <!-- Profit Margin -->
+                        <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-green-700">Margen de ganancia:</span>
+                                <span class="text-lg font-bold text-green-700"
+                                    th:text="'' + ${#numbers.formatDecimal(profitMargin, 1, 2)}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

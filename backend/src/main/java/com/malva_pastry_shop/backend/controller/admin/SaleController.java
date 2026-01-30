@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,6 +92,23 @@ public class SaleController {
         model.addAttribute("totalSalesAmount", totalSalesAmount);
         model.addAttribute("pageTitle", "Ventas");
         return "sales/list";
+    }
+
+    // ========== Detalle ==========
+
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id, Model model) {
+        Sale sale = saleService.findByIdWithDetails(id);
+        var ingredients = saleService.getSaleIngredients(id);
+        BigDecimal totalIngredientCost = saleService.calculateTotalIngredientCost(id);
+        BigDecimal profitMargin = sale.getTotalAmount().subtract(totalIngredientCost);
+
+        model.addAttribute("sale", sale);
+        model.addAttribute("ingredients", ingredients);
+        model.addAttribute("totalIngredientCost", totalIngredientCost);
+        model.addAttribute("profitMargin", profitMargin);
+        model.addAttribute("pageTitle", "Venta #" + sale.getId());
+        return "sales/show";
     }
 
     // ========== CRUD ==========
