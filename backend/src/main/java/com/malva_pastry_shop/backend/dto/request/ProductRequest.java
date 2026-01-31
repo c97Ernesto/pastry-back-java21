@@ -34,4 +34,7 @@ public class ProductRequest {
     private BigDecimal basePrice;
 
     private Long categoryId;
+
+    @Size(max = 500, message = "La URL de imagen no puede exceder 500 caracteres")
+    private String imageUrl;
 }

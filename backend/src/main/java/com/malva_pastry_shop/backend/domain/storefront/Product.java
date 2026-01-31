@@ -47,6 +47,10 @@ public class Product extends SoftDeletableEntity {
     @Column(name = "preparation_days")
     private Integer preparationDays;
 
+    @Size(max = 500, message = "La URL de imagen no puede exceder los 500 caracteres")
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     /**
      * Precio base del producto (puede variar en la venta).
      * Nullable para permitir productos sin precio definido inicialmente.

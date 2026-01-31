@@ -13,6 +13,7 @@ public record ProductPublicDTO(
         String description,
         BigDecimal basePrice,
         Integer preparationDays,
+        String imageUrl,
         CategoryPublicDTO category,
         List<TagPublicDTO> tags) {
     /**
@@ -22,6 +23,7 @@ public record ProductPublicDTO(
             Long id,
             String name,
             BigDecimal basePrice,
+            String imageUrl,
             String categoryName) {
     }
 }

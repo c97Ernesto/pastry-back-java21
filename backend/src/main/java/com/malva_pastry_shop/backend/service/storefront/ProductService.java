@@ -87,6 +87,7 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPreparationDays(request.getPreparationDays());
         product.setBasePrice(request.getBasePrice());
+        product.setImageUrl(request.getImageUrl());
         product.setCreatedBy(createdBy);
 
         if (request.getCategoryId() != null) {
@@ -107,6 +108,7 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPreparationDays(request.getPreparationDays());
         product.setBasePrice(request.getBasePrice());
+        product.setImageUrl(request.getImageUrl());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())

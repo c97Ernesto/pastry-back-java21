@@ -142,6 +142,7 @@ public class ProductController {
             request.setPreparationDays(product.getPreparationDays());
             request.setBasePrice(product.getBasePrice());
             request.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
+            request.setImageUrl(product.getImageUrl());
 
             model.addAttribute("product", request);
             model.addAttribute("productId", id);
