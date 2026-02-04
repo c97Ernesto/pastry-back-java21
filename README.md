@@ -11,6 +11,8 @@
 
 Sistema backend para la gestión de una pastelería artesanal. Este proyecto es una **refactorización completa y actualización** de un sistema anterior, modernizando la arquitectura y actualizando todas las dependencias a sus versiones más recientes.
 
+🔗 **Deploy en Render:** [https://malva-pastry-backend.onrender.com](https://malva-pastry-backend.onrender.com)
+
 ### Cambios Principales en la Refactorización
 
 | Aspecto             | Versión Anterior | Versión Actual |
@@ -129,7 +131,7 @@ spring.datasource.password=tu_password
 
 📚 **Documentación Completa del Sistema:**
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Arquitectura del sistema, patrones de diseño, DDD
+- **[ARCHITECTURE.md](backend/ARCHITECTURE.md)** - Arquitectura del sistema, patrones de diseño, DDD
 
 ---
 

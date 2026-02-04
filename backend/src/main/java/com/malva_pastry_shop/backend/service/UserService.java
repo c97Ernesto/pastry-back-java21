@@ -59,9 +59,15 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Ya existe un usuario con el email: " + request.getEmail());
         }
 
-        // Obtener rol USER por defecto
-        Role userRole = roleRepository.findByName(RoleType.USER)
-                .orElseThrow(() -> new EntityNotFoundException("Rol USER no encontrado"));
+        // Obtener rol: usar el especificado o USER por defecto
+        Role userRole;
+        if (request.getRoleId() != null) {
+            userRole = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado con ID: " + request.getRoleId()));
+        } else {
+            userRole = roleRepository.findByName(RoleType.USER)
+                    .orElseThrow(() -> new EntityNotFoundException("Rol USER no encontrado"));
+        }
 
         User user = new User();
         user.setName(request.getName());
@@ -78,6 +84,11 @@ public class UserService implements UserDetailsService {
     @Transactional
     public User updateUser(Long id, UpdateUserRequest request) {
         User user = findById(id);
+
+        // Block modification of system admin users
+        if (user.isSystemAdmin()) {
+            throw new IllegalArgumentException("No se puede modificar al administrador del sistema");
+        }
 
         // Validar email duplicado (excluyendo el usuario actual)
         if (userRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
@@ -105,6 +116,12 @@ public class UserService implements UserDetailsService {
     @Transactional
     public User toggleEnabled(Long id) {
         User user = findById(id);
+
+        // Block modification of system admin users
+        if (user.isSystemAdmin()) {
+            throw new IllegalArgumentException("No se puede modificar el estado del administrador del sistema");
+        }
+
         user.setEnabled(!user.getEnabled());
         return userRepository.save(user);
     }

@@ -45,9 +45,24 @@ public class UserController {
         return "users/list";
     }
 
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User user = userService.findById(id);
+            model.addAttribute("user", user);
+            model.addAttribute("isSystemAdmin", user.isSystemAdmin());
+            model.addAttribute("pageTitle", "Usuario: " + user.getFullName());
+            return "users/show";
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
+            return "redirect:/users";
+        }
+    }
+
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("user", new CreateUserRequest());
+        model.addAttribute("roles", roleRepository.findAll());
         model.addAttribute("pageTitle", "Nuevo Usuario");
         return "users/create";
     }
@@ -76,9 +91,15 @@ public class UserController {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findById(id);
+
+            // Block editing of system admin users
+            if (user.isSystemAdmin()) {
+                redirectAttributes.addFlashAttribute("error", "No se puede editar al administrador del sistema");
+                return "redirect:/users";
+            }
 
             UpdateUserRequest request = new UpdateUserRequest();
             request.setName(user.getName());
@@ -93,6 +114,7 @@ public class UserController {
             model.addAttribute("pageTitle", "Editar Usuario");
             return "users/edit";
         } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
             return "redirect:/users";
         }
     }
@@ -130,7 +152,16 @@ public class UserController {
     @PostMapping("/{id}/toggle")
     public String toggleEnabled(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            User user = userService.toggleEnabled(id);
+            User user = userService.findById(id);
+
+            // Block toggling of system admin users
+            if (user.isSystemAdmin()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "No se puede modificar el estado del administrador del sistema");
+                return "redirect:/users";
+            }
+
+            user = userService.toggleEnabled(id);
             String status = user.getEnabled() ? "activado" : "desactivado";
             redirectAttributes.addFlashAttribute("success", "Usuario " + status + " exitosamente");
         } catch (EntityNotFoundException e) {
