@@ -28,10 +28,26 @@ services:
         value: https://tu-frontend.vercel.app
       - key: GOOGLE_CLIENT_ID
         sync: false
-      - key: DATABASE_URL
+      - key: DATABASE_HOST
         fromDatabase:
           name: malva-pastry-db
-          property: connectionString
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: malva-pastry-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: malva-pastry-db
+          property: database
+      - key: DATABASE_USER
+        fromDatabase:
+          name: malva-pastry-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: malva-pastry-db
+          property: password
 
 # ===============================================
 # PostgreSQL Database (sección separada)
