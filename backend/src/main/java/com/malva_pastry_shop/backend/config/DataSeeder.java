@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Profile("dev", "prod")
+@Profile({ "dev", "prod" })
 public class DataSeeder implements CommandLineRunner {
 
         private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
