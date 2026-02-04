@@ -3,6 +3,7 @@ package com.malva_pastry_shop.backend.repository;
 import com.malva_pastry_shop.backend.domain.storefront.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,15 +13,19 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Productos activos (no eliminados)
+    @EntityGraph(attributePaths = { "category" })
     Page<Product> findByDeletedAtIsNull(Pageable pageable);
 
     // Productos activos por categoria
+    @EntityGraph(attributePaths = { "category" })
     Page<Product> findByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
 
     // Busqueda por nombre (solo activos)
+    @EntityGraph(attributePaths = { "category" })
     Page<Product> findByNameContainingIgnoreCaseAndDeletedAtIsNull(String name, Pageable pageable);
 
     // Producto activo por ID
+    @EntityGraph(attributePaths = { "category" })
     Optional<Product> findByIdAndDeletedAtIsNull(Long id);
 
     // Contar productos por categoria
@@ -33,5 +38,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByNameIgnoreCase(String name);
 
     // Productos eliminados (papelera)
+    @EntityGraph(attributePaths = { "category" })
     Page<Product> findByDeletedAtIsNotNull(Pageable pageable);
 }
