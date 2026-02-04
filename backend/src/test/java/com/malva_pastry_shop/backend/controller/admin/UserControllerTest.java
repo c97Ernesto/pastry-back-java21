@@ -191,7 +191,7 @@ class UserControllerTest {
             when(userService.findById(1L)).thenReturn(testUser);
             when(roleRepository.findAll()).thenReturn(roles);
 
-            String result = userController.showEditForm(1L, model);
+            String result = userController.showEditForm(1L, model, redirectAttributes);
 
             assertThat(result).isEqualTo("users/edit");
             verify(model).addAttribute(eq("user"), any(UpdateUserRequest.class));
@@ -205,9 +205,24 @@ class UserControllerTest {
         void showEditForm_WithNonExistingUser_RedirectsToList() {
             when(userService.findById(99L)).thenThrow(new EntityNotFoundException("Usuario no encontrado"));
 
-            String result = userController.showEditForm(99L, model);
+            String result = userController.showEditForm(99L, model, redirectAttributes);
 
             assertThat(result).isEqualTo("redirect:/users");
+            verify(redirectAttributes).addFlashAttribute("error", "Usuario no encontrado");
+        }
+
+        @Test
+        @DisplayName("Debe redirigir a lista cuando el usuario es system admin")
+        void showEditForm_WithSystemAdmin_RedirectsToListWithError() {
+            User sysAdmin = new User();
+            sysAdmin.setId(1L);
+            sysAdmin.setSystemAdmin(true);
+            when(userService.findById(1L)).thenReturn(sysAdmin);
+
+            String result = userController.showEditForm(1L, model, redirectAttributes);
+
+            assertThat(result).isEqualTo("redirect:/users");
+            verify(redirectAttributes).addFlashAttribute("error", "No se puede editar al administrador del sistema");
         }
     }
 
@@ -296,6 +311,8 @@ class UserControllerTest {
             User disabledUser = new User();
             disabledUser.setId(1L);
             disabledUser.setEnabled(true);
+            disabledUser.setSystemAdmin(false);
+            when(userService.findById(1L)).thenReturn(disabledUser);
             when(userService.toggleEnabled(1L)).thenReturn(disabledUser);
 
             String result = userController.toggleEnabled(1L, redirectAttributes);
@@ -310,6 +327,8 @@ class UserControllerTest {
             User enabledUser = new User();
             enabledUser.setId(1L);
             enabledUser.setEnabled(false);
+            enabledUser.setSystemAdmin(false);
+            when(userService.findById(1L)).thenReturn(enabledUser);
             when(userService.toggleEnabled(1L)).thenReturn(enabledUser);
 
             String result = userController.toggleEnabled(1L, redirectAttributes);
@@ -321,12 +340,28 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe redirigir con mensaje de error cuando el usuario no existe")
         void toggleEnabled_WhenUserNotFound_RedirectsWithError() {
-            when(userService.toggleEnabled(99L)).thenThrow(new EntityNotFoundException("Usuario no encontrado"));
+            when(userService.findById(99L)).thenThrow(new EntityNotFoundException("Usuario no encontrado"));
 
             String result = userController.toggleEnabled(99L, redirectAttributes);
 
             assertThat(result).isEqualTo("redirect:/users");
             verify(redirectAttributes).addFlashAttribute("error", "Usuario no encontrado");
+        }
+
+        @Test
+        @DisplayName("Debe redirigir con mensaje de error cuando el usuario es system admin")
+        void toggleEnabled_WhenSystemAdmin_RedirectsWithError() {
+            User sysAdmin = new User();
+            sysAdmin.setId(1L);
+            sysAdmin.setSystemAdmin(true);
+            when(userService.findById(1L)).thenReturn(sysAdmin);
+
+            String result = userController.toggleEnabled(1L, redirectAttributes);
+
+            assertThat(result).isEqualTo("redirect:/users");
+            verify(redirectAttributes).addFlashAttribute("error",
+                    "No se puede modificar el estado del administrador del sistema");
+            verify(userService, never()).toggleEnabled(anyLong());
         }
     }
 }
