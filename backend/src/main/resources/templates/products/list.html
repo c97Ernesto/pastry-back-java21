@@ -133,8 +133,7 @@
                                     <!-- Product Image Thumbnail -->
                                     <div class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-primary-100">
                                         <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}"
-                                            th:alt="${product.name}"
-                                            class="w-full h-full object-cover">
+                                            th:alt="${product.name}" class="w-full h-full object-cover">
                                         <div th:if="${product.imageUrl == null}"
                                             class="w-full h-full flex items-center justify-center">
                                             <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor"
@@ -157,7 +156,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span th:if="${product.category != null}"
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                                    th:text="${product.category.name}"></span>
+                                    th:text="${product.category?.name}"></span>
                                 <span th:if="${product.category == null}" class="text-sm text-gray-400 italic">Sin
                                     categoría</span>
                             </td>
