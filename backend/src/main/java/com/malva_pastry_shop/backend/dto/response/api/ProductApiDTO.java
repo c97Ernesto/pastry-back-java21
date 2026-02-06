@@ -1,23 +1,23 @@
-package com.malva_pastry_shop.backend.dto.response.publicdto;
+package com.malva_pastry_shop.backend.dto.response.api;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * DTO público para productos expuestos en la API REST.
- * Contiene solo información visible para clientes.
+ * DTO para productos en la API pública.
+ * Contiene información básica y detallada del producto.
  */
-public record ProductPublicDTO(
+public record ProductApiDTO(
         Long id,
         String name,
         String description,
         BigDecimal basePrice,
         Integer preparationDays,
         String imageUrl,
-        CategoryPublicDTO category,
-        List<TagPublicDTO> tags) {
+        CategoryApiDTO category,
+        List<TagApiDTO> tags) {
     /**
-     * Versión simplificada sin categoría ni tags (para listados)
+     * Versión simplificada para listados.
      */
     public record Simple(
             Long id,
