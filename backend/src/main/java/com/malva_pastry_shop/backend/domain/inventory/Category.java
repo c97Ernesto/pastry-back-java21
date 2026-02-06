@@ -1,4 +1,4 @@
-package com.malva_pastry_shop.backend.domain.storefront;
+package com.malva_pastry_shop.backend.domain.inventory;
 
 import com.malva_pastry_shop.backend.domain.common.SoftDeletableEntity;
 

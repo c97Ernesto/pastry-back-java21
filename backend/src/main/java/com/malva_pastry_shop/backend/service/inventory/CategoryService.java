@@ -1,11 +1,11 @@
-package com.malva_pastry_shop.backend.service.storefront;
+package com.malva_pastry_shop.backend.service.inventory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.malva_pastry_shop.backend.domain.auth.User;
-import com.malva_pastry_shop.backend.domain.storefront.Category;
+import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.dto.request.CategoryRequest;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;

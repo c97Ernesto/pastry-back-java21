@@ -7,7 +7,7 @@ import java.time.LocalTime;
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.service.inventory.IngredientService;
 import com.malva_pastry_shop.backend.service.sales.SaleService;
-import com.malva_pastry_shop.backend.service.storefront.CategoryService;
+import com.malva_pastry_shop.backend.service.inventory.CategoryService;
 import com.malva_pastry_shop.backend.service.storefront.ProductService;
 
 import org.springframework.data.domain.Pageable;

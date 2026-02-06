@@ -3,15 +3,24 @@ package com.malva_pastry_shop.backend.config;
 import com.malva_pastry_shop.backend.domain.auth.Role;
 import com.malva_pastry_shop.backend.domain.auth.RoleType;
 import com.malva_pastry_shop.backend.domain.auth.User;
-import com.malva_pastry_shop.backend.domain.storefront.Category;
+import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.domain.inventory.Ingredient;
 import com.malva_pastry_shop.backend.domain.storefront.Product;
+import com.malva_pastry_shop.backend.domain.storefront.ProductTag;
+import com.malva_pastry_shop.backend.domain.storefront.StorefrontSection;
+import com.malva_pastry_shop.backend.domain.storefront.StorefrontSectionProduct;
+import com.malva_pastry_shop.backend.domain.storefront.Tag;
 import com.malva_pastry_shop.backend.domain.inventory.UnitOfMeasure;
 import com.malva_pastry_shop.backend.repository.CategoryRepository;
 import com.malva_pastry_shop.backend.repository.IngredientRepository;
 import com.malva_pastry_shop.backend.repository.ProductRepository;
+import com.malva_pastry_shop.backend.repository.ProductTagRepository;
 import com.malva_pastry_shop.backend.repository.RoleRepository;
+import com.malva_pastry_shop.backend.repository.StorefrontSectionProductRepository;
+import com.malva_pastry_shop.backend.repository.StorefrontSectionRepository;
+import com.malva_pastry_shop.backend.repository.TagRepository;
 import com.malva_pastry_shop.backend.repository.UserRepository;
+import com.malva_pastry_shop.backend.util.SlugUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -35,6 +44,10 @@ public class DataSeeder implements CommandLineRunner {
         private final CategoryRepository categoryRepository;
         private final ProductRepository productRepository;
         private final IngredientRepository ingredientRepository;
+        private final TagRepository tagRepository;
+        private final ProductTagRepository productTagRepository;
+        private final StorefrontSectionRepository sectionRepository;
+        private final StorefrontSectionProductRepository sectionProductRepository;
         private final PasswordEncoder passwordEncoder;
 
         public DataSeeder(RoleRepository roleRepository,
@@ -42,12 +55,20 @@ public class DataSeeder implements CommandLineRunner {
                         CategoryRepository categoryRepository,
                         ProductRepository productRepository,
                         IngredientRepository ingredientRepository,
+                        TagRepository tagRepository,
+                        ProductTagRepository productTagRepository,
+                        StorefrontSectionRepository sectionRepository,
+                        StorefrontSectionProductRepository sectionProductRepository,
                         PasswordEncoder passwordEncoder) {
                 this.roleRepository = roleRepository;
                 this.userRepository = userRepository;
                 this.categoryRepository = categoryRepository;
                 this.productRepository = productRepository;
                 this.ingredientRepository = ingredientRepository;
+                this.tagRepository = tagRepository;
+                this.productTagRepository = productTagRepository;
+                this.sectionRepository = sectionRepository;
+                this.sectionProductRepository = sectionProductRepository;
                 this.passwordEncoder = passwordEncoder;
         }
 
@@ -59,6 +80,10 @@ public class DataSeeder implements CommandLineRunner {
                 seedIngredients();
                 Map<String, Category> categories = seedCategories();
                 seedProducts(categories);
+                Map<String, Tag> tags = seedTags();
+                seedProductTags(tags);
+                Map<String, StorefrontSection> sections = seedSections();
+                seedSectionProducts(sections);
         }
 
         private void seedRoles() {
@@ -603,7 +628,299 @@ public class DataSeeder implements CommandLineRunner {
                 product.setPreparationDays(preparationDays);
                 product.setCategory(category);
                 product.setImageUrl(imageUrl);
+                product.setVisible(true);
                 productRepository.save(product);
                 log.debug("Producto creado: {} - ${}", name, basePrice);
+        }
+
+        // ========== Tags ==========
+
+        private Map<String, Tag> seedTags() {
+                Map<String, Tag> tagMap = new HashMap<>();
+
+                Object[][] tagsData = {
+                                { "Bestseller", "Productos más vendidos y favoritos de nuestros clientes" },
+                                { "Nuevo", "Incorporaciones recientes a nuestro menú" },
+                                { "Sin Gluten", "Productos elaborados sin gluten" },
+                                { "Vegano", "Productos 100% libres de ingredientes de origen animal" },
+                                { "Sin Lácteos", "Productos elaborados sin lácteos ni derivados" },
+                                { "Bajo en Azúcar", "Opciones con contenido reducido de azúcar" },
+                                { "Con Chocolate", "Productos que contienen chocolate en su preparación" },
+                                { "Con Frutas", "Productos elaborados con frutas frescas o naturales" },
+                                { "Clásico", "Recetas tradicionales que nunca pasan de moda" },
+                                { "Premium", "Selección gourmet con ingredientes de primera calidad" },
+                                { "Artesanal", "Elaborados a mano con técnicas artesanales" },
+                                { "De Temporada", "Productos disponibles por tiempo limitado según la época del año" },
+                                { "Para Compartir", "Porciones ideales para disfrutar en grupo" },
+                                { "Individual", "Porciones perfectas para una persona" }
+                };
+
+                int created = 0;
+                for (Object[] data : tagsData) {
+                        String name = (String) data[0];
+                        String description = (String) data[1];
+
+                        var existingTag = tagRepository.findByNameIgnoreCase(name);
+                        if (existingTag.isEmpty()) {
+                                Tag tag = new Tag(name, description);
+                                tag.setSlug(SlugUtil.generateSlug(name));
+                                tagRepository.save(tag);
+                                tagMap.put(name, tag);
+                                created++;
+                                log.info("Tag creado: {} ({})", name, tag.getSlug());
+                        } else {
+                                tagMap.put(name, existingTag.get());
+                                log.debug("Tag ya existe: {}", name);
+                        }
+                }
+
+                log.info("Seed de tags completado. {} tags nuevos creados, {} total procesados.", created,
+                                tagMap.size());
+                return tagMap;
+        }
+
+        // ========== Product-Tag associations ==========
+
+        private void seedProductTags(Map<String, Tag> tags) {
+                if (productTagRepository.count() > 0) {
+                        log.info("Ya existen asociaciones producto-tag. Saltando seed.");
+                        return;
+                }
+
+                int totalAssociations = 0;
+
+                // Bestseller
+                totalAssociations += assignTag(tags, "Bestseller",
+                                "Pastel de Chocolate Triple", "Concha de Vainilla",
+                                "Galletas de Chispas de Chocolate", "Pay de Manzana",
+                                "Cupcake de Chocolate", "Pastel Tres Leches");
+
+                // Nuevo
+                totalAssociations += assignTag(tags, "Nuevo",
+                                "Brownie Vegano", "Cupcakes Veganos Variados",
+                                "Focaccia de Romero", "Crème Brûlée");
+
+                // Sin Gluten
+                totalAssociations += assignTag(tags, "Sin Gluten",
+                                "Mousse de Chocolate", "Panna Cotta",
+                                "Crème Brûlée", "Trufas de Chocolate",
+                                "Cocadas", "Mazapán de Almendra");
+
+                // Vegano
+                totalAssociations += assignTag(tags, "Vegano",
+                                "Pastel Vegano de Chocolate", "Cupcakes Veganos Variados",
+                                "Galletas Veganas de Avena", "Brownie Vegano");
+
+                // Sin Lácteos
+                totalAssociations += assignTag(tags, "Sin Lácteos",
+                                "Pastel Vegano de Chocolate", "Galletas Veganas de Avena",
+                                "Brownie Vegano", "Cocadas");
+
+                // Bajo en Azúcar
+                totalAssociations += assignTag(tags, "Bajo en Azúcar",
+                                "Galletas de Avena con Pasas", "Pan de Masa Madre",
+                                "Baguette Francesa");
+
+                // Con Chocolate
+                totalAssociations += assignTag(tags, "Con Chocolate",
+                                "Pastel de Chocolate Triple", "Cupcake de Chocolate",
+                                "Galletas de Chispas de Chocolate", "Mousse de Chocolate",
+                                "Trufas de Chocolate", "Pastel Selva Negra",
+                                "Cupcake de Nutella", "Brownie Vegano",
+                                "Concha de Chocolate");
+
+                // Con Frutas
+                totalAssociations += assignTag(tags, "Con Frutas",
+                                "Pastel de Fresas con Crema", "Tarta de Frutos Rojos",
+                                "Pay de Manzana", "Tarta Tatin",
+                                "Pay de Limón", "Pastel de Zanahoria");
+
+                // Clásico
+                totalAssociations += assignTag(tags, "Clásico",
+                                "Concha de Vainilla", "Concha de Chocolate",
+                                "Cuerno de Mantequilla", "Oreja",
+                                "Polvorón Rosa", "Pan de Muerto",
+                                "Rosca de Reyes", "Pastel de Vainilla Clásico",
+                                "Pastel Tres Leches", "Galletas de Mantequilla");
+
+                // Premium
+                totalAssociations += assignTag(tags, "Premium",
+                                "Pastel Selva Negra", "Profiteroles",
+                                "Tiramisú Individual", "Cheesecake New York",
+                                "Tronco de Navidad", "Pay de Nuez",
+                                "Trufas de Chocolate");
+
+                // Artesanal
+                totalAssociations += assignTag(tags, "Artesanal",
+                                "Baguette Francesa", "Ciabatta Italiana",
+                                "Focaccia de Romero", "Pan de Masa Madre",
+                                "Mazapán de Almendra", "Cocadas",
+                                "Jamoncillo de Leche");
+
+                // De Temporada
+                totalAssociations += assignTag(tags, "De Temporada",
+                                "Pan de Muerto", "Rosca de Reyes",
+                                "Tronco de Navidad");
+
+                // Para Compartir
+                totalAssociations += assignTag(tags, "Para Compartir",
+                                "Rosca de Reyes", "Pay de Manzana",
+                                "Pay de Nuez", "Tarta de Frutos Rojos",
+                                "Pastel de Chocolate Triple");
+
+                // Individual
+                totalAssociations += assignTag(tags, "Individual",
+                                "Cupcake de Chocolate", "Cupcake Red Velvet",
+                                "Cupcake de Limón", "Cupcake de Nutella",
+                                "Cupcake de Café Moka", "Tiramisú Individual",
+                                "Mousse de Chocolate", "Panna Cotta",
+                                "Crème Brûlée", "Profiteroles");
+
+                log.info("Seed de asociaciones producto-tag completado. Total: {} asociaciones creadas.",
+                                totalAssociations);
+        }
+
+        private int assignTag(Map<String, Tag> tags, String tagName, String... productNames) {
+                Tag tag = tags.get(tagName);
+                if (tag == null) {
+                        log.warn("Tag no encontrado: {}", tagName);
+                        return 0;
+                }
+
+                int count = 0;
+                for (String productName : productNames) {
+                        var productOpt = productRepository.findByNameIgnoreCase(productName);
+                        if (productOpt.isPresent()) {
+                                Product product = productOpt.get();
+                                if (!productTagRepository.existsByProductIdAndTagId(product.getId(), tag.getId())) {
+                                        productTagRepository.save(new ProductTag(product, tag));
+                                        count++;
+                                        log.debug("Asociación creada: {} -> {}", productName, tagName);
+                                }
+                        } else {
+                                log.warn("Producto no encontrado para tag '{}': {}", tagName, productName);
+                        }
+                }
+                return count;
+        }
+
+        // ========== Storefront Sections ==========
+
+        private Map<String, StorefrontSection> seedSections() {
+                Map<String, StorefrontSection> sectionMap = new HashMap<>();
+
+                Object[][] sectionsData = {
+                                { "Más Vendidos", "Los productos favoritos de nuestros clientes", 1 },
+                                { "Novedades", "Las incorporaciones más recientes a nuestro menú", 2 },
+                                { "Pasteles Destacados", "Nuestra selección de pasteles más especiales", 3 },
+                                { "Postres Premium", "Postres gourmet elaborados con ingredientes de primera", 4 },
+                                { "Pan Dulce Mexicano", "Auténtico pan dulce de tradición mexicana", 5 },
+                                { "Para Compartir", "Porciones ideales para disfrutar en grupo", 6 }
+                };
+
+                int created = 0;
+                for (Object[] data : sectionsData) {
+                        String name = (String) data[0];
+                        String description = (String) data[1];
+                        Integer displayOrder = (Integer) data[2];
+
+                        var existingSection = sectionRepository.findByNameIgnoreCase(name);
+                        if (existingSection.isEmpty()) {
+                                StorefrontSection section = new StorefrontSection(name, description);
+                                section.setSlug(SlugUtil.generateSlug(name));
+                                section.setDisplayOrder(displayOrder);
+                                section.setVisible(true);
+                                sectionRepository.save(section);
+                                sectionMap.put(name, section);
+                                created++;
+                                log.info("Sección creada: {} ({})", name, section.getSlug());
+                        } else {
+                                sectionMap.put(name, existingSection.get());
+                                log.debug("Sección ya existe: {}", name);
+                        }
+                }
+
+                log.info("Seed de secciones completado. {} secciones nuevas creadas, {} total procesadas.", created,
+                                sectionMap.size());
+                return sectionMap;
+        }
+
+        private void seedSectionProducts(Map<String, StorefrontSection> sections) {
+                if (sectionProductRepository.count() > 0) {
+                        log.info("Ya existen asociaciones sección-producto. Saltando seed.");
+                        return;
+                }
+
+                int totalAssociations = 0;
+
+                // Más Vendidos
+                totalAssociations += assignSection(sections, "Más Vendidos",
+                                "Pastel de Chocolate Triple", "Concha de Vainilla",
+                                "Galletas de Chispas de Chocolate", "Pay de Manzana",
+                                "Cupcake de Chocolate", "Pastel Tres Leches");
+
+                // Novedades
+                totalAssociations += assignSection(sections, "Novedades",
+                                "Brownie Vegano", "Cupcakes Veganos Variados",
+                                "Focaccia de Romero", "Crème Brûlée",
+                                "Tarta Tatin");
+
+                // Pasteles Destacados
+                totalAssociations += assignSection(sections, "Pasteles Destacados",
+                                "Pastel de Chocolate Triple", "Pastel Red Velvet",
+                                "Pastel de Fresas con Crema", "Pastel Tres Leches",
+                                "Pastel Selva Negra", "Pastel de Zanahoria");
+
+                // Postres Premium
+                totalAssociations += assignSection(sections, "Postres Premium",
+                                "Tiramisú Individual", "Mousse de Chocolate",
+                                "Cheesecake New York", "Panna Cotta",
+                                "Crème Brûlée", "Profiteroles",
+                                "Trufas de Chocolate");
+
+                // Pan Dulce Mexicano
+                totalAssociations += assignSection(sections, "Pan Dulce Mexicano",
+                                "Concha de Vainilla", "Concha de Chocolate",
+                                "Cuerno de Mantequilla", "Oreja",
+                                "Polvorón Rosa", "Garibaldi");
+
+                // Para Compartir
+                totalAssociations += assignSection(sections, "Para Compartir",
+                                "Rosca de Reyes", "Pay de Manzana",
+                                "Pay de Nuez", "Tarta de Frutos Rojos",
+                                "Pastel de Chocolate Triple");
+
+                log.info("Seed de asociaciones sección-producto completado. Total: {} asociaciones creadas.",
+                                totalAssociations);
+        }
+
+        private int assignSection(Map<String, StorefrontSection> sections, String sectionName,
+                        String... productNames) {
+                StorefrontSection section = sections.get(sectionName);
+                if (section == null) {
+                        log.warn("Sección no encontrada: {}", sectionName);
+                        return 0;
+                }
+
+                int count = 0;
+                int order = 1;
+                for (String productName : productNames) {
+                        var productOpt = productRepository.findByNameIgnoreCase(productName);
+                        if (productOpt.isPresent()) {
+                                Product product = productOpt.get();
+                                if (!sectionProductRepository.existsByStorefrontSectionIdAndProductId(section.getId(),
+                                                product.getId())) {
+                                        sectionProductRepository
+                                                        .save(new StorefrontSectionProduct(section, product, order));
+                                        count++;
+                                        log.debug("Asociación sección creada: {} -> {} (orden {})", productName,
+                                                        sectionName, order);
+                                }
+                        } else {
+                                log.warn("Producto no encontrado para sección '{}': {}", sectionName, productName);
+                        }
+                        order++;
+                }
+                return count;
         }
 }

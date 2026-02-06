@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.domain.inventory.Ingredient;
 import com.malva_pastry_shop.backend.domain.inventory.ProductIngredient;
-import com.malva_pastry_shop.backend.domain.storefront.Category;
+import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.domain.storefront.Product;
 import com.malva_pastry_shop.backend.domain.storefront.ProductTag;
 import com.malva_pastry_shop.backend.domain.storefront.Tag;
@@ -74,6 +74,26 @@ public class ProductService {
 
     public Page<Product> findDeleted(Pageable pageable) {
         return productRepository.findByDeletedAtIsNotNull(pageable);
+    }
+
+    // ========== Consultas API pública (vitrina) ==========
+
+    @Transactional(readOnly = true)
+    public Page<Product> findVisibleProducts(String name, Long categoryId, Pageable pageable) {
+        if (name != null && !name.isBlank()) {
+            return productRepository
+                    .findByVisibleTrueAndNameContainingIgnoreCaseAndDeletedAtIsNull(name, pageable);
+        } else if (categoryId != null) {
+            return productRepository
+                    .findByVisibleTrueAndCategoryIdAndDeletedAtIsNull(categoryId, pageable);
+        }
+        return productRepository.findByVisibleTrueAndDeletedAtIsNull(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Product findVisibleById(Long id) {
+        return productRepository.findByIdAndVisibleTrueAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
     }
 
     // ========== CRUD ==========

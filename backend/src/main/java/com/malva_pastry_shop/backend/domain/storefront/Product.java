@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.malva_pastry_shop.backend.domain.auth.User;
 import com.malva_pastry_shop.backend.domain.common.SoftDeletableEntity;
+import com.malva_pastry_shop.backend.domain.inventory.Category;
 import com.malva_pastry_shop.backend.domain.inventory.ProductIngredient;
 
 import jakarta.persistence.CascadeType;
@@ -61,6 +62,13 @@ public class Product extends SoftDeletableEntity {
     private BigDecimal basePrice;
 
     /**
+     * Indica si el producto es visible en la vitrina publica.
+     * Por defecto false para que los productos nuevos no sean visibles.
+     */
+    @Column(nullable = false)
+    private Boolean visible = false;
+
+    /**
      * Relacion con User (creador del producto).
      * SET NULL on delete para mantener historico de productos.
      */
@@ -91,6 +99,14 @@ public class Product extends SoftDeletableEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("id ASC")
     private List<ProductTag> productTags = new ArrayList<>();
+
+    /**
+     * Relacion con Secciones de la Vitrina.
+     * Cascade ALL + orphanRemoval para gestion automatica del ciclo de vida.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    private List<StorefrontSectionProduct> sectionProducts = new ArrayList<>();
 
     // ==================== CONSTRUCTORES ====================
 
