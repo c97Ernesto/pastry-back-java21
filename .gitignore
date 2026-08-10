@@ -49,3 +49,8 @@ backend/CONTEXT.md
 
 ### Personal Docs ###
 personal-docs
+
+### Dossier técnico ###
+# Clon del repo ErnestoCafre/technical-dossier. El dossier se escribe junto al
+# código para que no envejezca, pero se versiona allá, no acá.
+technical-dossier
